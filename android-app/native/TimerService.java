@@ -46,7 +46,7 @@ import java.util.Locale;
 
 /** Servizio in primo piano: notifica (stile lettore multimediale o classica) + bolla flottante moderna. */
 public class TimerService extends Service {
-    static final String CH = "gymer_run";
+    static final String CH = "gymer_run2"; // v2: importanza normale (le notifiche "silenziose" spesso sono nascoste dalla schermata di blocco)
     static final String ACT = "it.gymer.app.act.";
 
     private final Handler h = new Handler(Looper.getMainLooper());
@@ -116,12 +116,15 @@ public class TimerService extends Service {
     // =====================================================================
     private void ensureChannel() {
         if (Build.VERSION.SDK_INT >= 26) {
-            NotificationChannel ch = new NotificationChannel(CH, "Timer in corso", NotificationManager.IMPORTANCE_LOW);
-            ch.setDescription("Mostra il recupero in corso");
+            NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            try { nm.deleteNotificationChannel("gymer_run"); } catch (Exception ignored) {}
+            NotificationChannel ch = new NotificationChannel(CH, "Timer in corso", NotificationManager.IMPORTANCE_DEFAULT);
+            ch.setDescription("Mostra il recupero in corso, anche nella schermata di blocco (senza suono)");
             ch.setSound(null, null);
             ch.enableVibration(false);
             ch.setShowBadge(false);
-            ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(ch);
+            ch.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+            nm.createNotificationChannel(ch);
         }
     }
 
