@@ -35,6 +35,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
+import android.widget.RemoteViews;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
@@ -206,7 +207,39 @@ public class TimerService extends Service {
         return b.build();
     }
 
-    private boolean media() { return TimerState.sp(this).getBoolean("media", true); }
+    private boolean media() { return TimerState.sp(this).getBoolean("mstyle2", false); }
+
+    private int rid(String name, String type) { return getResources().getIdentifier(name, type, getPackageName()); }
+
+    /** Notifica predefinita: tempo grande che scorre da solo + Pausa / +30s / Stop (come il timer di sistema). */
+    private Notification buildCustom() {
+        int lay = rid("gymer_notif", "layout"), idT = rid("gn_time", "id"), idTitle = rid("gn_title", "id"), idSub = rid("gn_sub", "id");
+        if (Build.VERSION.SDK_INT < 24 || lay == 0 || idT == 0 || idTitle == 0 || idSub == 0) return buildClassic();
+        boolean run = TimerState.run;
+        long rem = TimerState.remaining();
+        RemoteViews rv = new RemoteViews(getPackageName(), lay);
+        rv.setTextViewText(idTitle, run ? "Recupero in corso" : "Recupero in pausa");
+        rv.setChronometerCountDown(idT, true);
+        rv.setChronometer(idT, SystemClock.elapsedRealtime() + rem, null, run);
+        rv.setTextViewText(idSub, run ? endText() : "Tocca Riprendi per ripartire");
+        Notification.Builder b = Build.VERSION.SDK_INT >= 26 ? new Notification.Builder(this, CH) : new Notification.Builder(this);
+        b.setSmallIcon(smallIcon())
+                .setOngoing(true)
+                .setOnlyAlertOnce(true)
+                .setShowWhen(false)
+                .setCategory(Notification.CATEGORY_PROGRESS)
+                .setVisibility(Notification.VISIBILITY_PUBLIC)
+                .setColor(0xFF8B7BFF)
+                .setCustomContentView(rv)
+                .setStyle(new Notification.DecoratedCustomViewStyle())
+                .setContentIntent(openPi());
+        if (Build.VERSION.SDK_INT < 26) b.setPriority(Notification.PRIORITY_LOW);
+        if (Build.VERSION.SDK_INT >= 31) b.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE);
+        b.addAction(new Notification.Action.Builder(0, run ? "Pausa" : "Riprendi", actionPi(run ? "pause" : "resume", 11)).build());
+        b.addAction(new Notification.Action.Builder(0, "+30s", actionPi("add", 12)).build());
+        b.addAction(new Notification.Action.Builder(0, "Stop", actionPi("stop", 13)).build());
+        return b.build();
+    }
 
     private Notification buildMinimal() {
         Notification.Builder b = Build.VERSION.SDK_INT >= 26 ? new Notification.Builder(this, CH) : new Notification.Builder(this);
@@ -229,6 +262,9 @@ public class TimerService extends Service {
                 }
             } else {
                 releaseSession();
+            }
+            if (n == null) {
+                try { n = buildCustom(); } catch (Throwable e) { n = null; }
             }
             if (n == null) n = buildClassic();
         } catch (Throwable e) {
