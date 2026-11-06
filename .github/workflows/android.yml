@@ -15,6 +15,11 @@ on:
 permissions:
   contents: write
 
+# una sola build alla volta: le piu' vecchie vengono annullate (evita conflitti sulla release "latest")
+concurrency:
+  group: android-apk
+  cancel-in-progress: true
+
 jobs:
   apk:
     runs-on: ubuntu-latest
@@ -37,10 +42,14 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release delete latest --yes --cleanup-tag || true
-          gh release create latest android-app/out/GYMER.apk \
-            --title "GYMER (build ${{ github.run_number }})" \
-            --notes "APK di GYMER, build ${{ github.run_number }}."
+          TITLE="GYMER (build ${{ github.run_number }})"
+          NOTES="APK di GYMER, build ${{ github.run_number }}."
+          if gh release view latest >/dev/null 2>&1; then
+            gh release upload latest android-app/out/GYMER.apk --clobber
+            gh release edit latest --title "$TITLE" --notes "$NOTES"
+          else
+            gh release create latest android-app/out/GYMER.apk --title "$TITLE" --notes "$NOTES"
+          fi
       - uses: actions/upload-artifact@v4
         with:
           name: GYMER-apk
