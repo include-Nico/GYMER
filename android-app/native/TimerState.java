@@ -30,6 +30,7 @@ public final class TimerState {
     public static boolean snd = true;
     public static int vib = 400;
     public static boolean bubble = true;
+    public static boolean mediaStyle = true;
     public static boolean bubbleHidden = false;
     public static boolean foreground = false;
     public static Listener listener;
@@ -48,13 +49,14 @@ public final class TimerState {
         snd = p.getBoolean("snd", true);
         vib = p.getInt("vib", 400);
         bubble = p.getBoolean("bubble", true);
+        mediaStyle = p.getBoolean("media", true);
         bubbleHidden = p.getBoolean("hidden", false);
     }
 
     public static synchronized void save(Context c) {
         sp(c).edit().putBoolean("run", run).putLong("end", end).putLong("left", left).putLong("total", total)
                 .putLong("u", u).putBoolean("snd", snd).putInt("vib", vib).putBoolean("bubble", bubble)
-                .putBoolean("hidden", bubbleHidden).apply();
+                .putBoolean("hidden", bubbleHidden).putBoolean("media", mediaStyle).apply();
     }
 
     public static long remaining() { return run ? Math.max(0, end - System.currentTimeMillis()) : left; }
