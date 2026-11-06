@@ -206,9 +206,11 @@ public class TimerService extends Service {
         return b.build();
     }
 
+    private boolean media() { return TimerState.sp(this).getBoolean("media", true); }
+
     private void startFg() {
         Notification n;
-        if (TimerState.mediaStyle && TimerState.active()) {
+        if (media() && TimerState.active()) {
             try {
                 ensureSession();
                 updateSession();
