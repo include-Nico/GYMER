@@ -207,37 +207,79 @@ public class TimerService extends Service {
         return b.build();
     }
 
-    private boolean media() { return TimerState.sp(this).getBoolean("mstyle2", false); }
+    /** 0 = riquadro (stile timer Samsung), 1 = live Android 16 / Now Bar, 2 = lettore musicale */
+    private int nstyle() {
+        android.content.SharedPreferences p = TimerState.sp(this);
+        if (p.contains("nstyle")) return p.getInt("nstyle", 0);
+        return p.getBoolean("mstyle2", false) ? 2 : 0;
+    }
+    private boolean media() { return nstyle() == 2; }
 
     private int rid(String name, String type) { return getResources().getIdentifier(name, type, getPackageName()); }
 
-    /** Notifica predefinita: tempo grande che scorre da solo + Pausa / +30s / Stop (come il timer di sistema). */
+    private Notification.Builder baseBuilder() {
+        return Build.VERSION.SDK_INT >= 26 ? new Notification.Builder(this, CH) : new Notification.Builder(this);
+    }
+
+    private void addTimerActions(Notification.Builder b) {
+        boolean run = TimerState.run;
+        b.addAction(new Notification.Action.Builder(0, "Annulla", actionPi("stop", 13)).build());
+        b.addAction(new Notification.Action.Builder(0, run ? "Pausa" : "Riprendi", actionPi(run ? "pause" : "resume", 11)).build());
+        b.addAction(new Notification.Action.Builder(0, "+30s", actionPi("add", 12)).build());
+    }
+
+    /** Riquadro: icona clessidra + tempo grande che scorre da solo + Annulla / Pausa / +30s. */
     private Notification buildCustom() {
-        int lay = rid("gymer_notif", "layout"), idT = rid("gn_time", "id"), idTitle = rid("gn_title", "id"), idSub = rid("gn_sub", "id");
-        if (Build.VERSION.SDK_INT < 24 || lay == 0 || idT == 0 || idTitle == 0 || idSub == 0) return buildClassic();
+        int lay = rid("gymer_notif", "layout"), idT = rid("gn_time", "id"), idSub = rid("gn_sub", "id");
+        if (Build.VERSION.SDK_INT < 24 || lay == 0 || idT == 0 || idSub == 0) return buildClassic();
         boolean run = TimerState.run;
         long rem = TimerState.remaining();
         RemoteViews rv = new RemoteViews(getPackageName(), lay);
-        rv.setTextViewText(idTitle, run ? "Recupero in corso" : "Recupero in pausa");
         rv.setChronometerCountDown(idT, true);
         rv.setChronometer(idT, SystemClock.elapsedRealtime() + rem, null, run);
-        rv.setTextViewText(idSub, run ? endText() : "Tocca Riprendi per ripartire");
-        Notification.Builder b = Build.VERSION.SDK_INT >= 26 ? new Notification.Builder(this, CH) : new Notification.Builder(this);
+        rv.setTextViewText(idSub, run ? "Recupero / " + new SimpleDateFormat("HH:mm", Locale.ITALY).format(new Date(TimerState.end)) : "Recupero in pausa");
+        Notification.Builder b = baseBuilder();
         b.setSmallIcon(smallIcon())
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
                 .setShowWhen(false)
                 .setCategory(Notification.CATEGORY_PROGRESS)
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
-                .setColor(0xFF8B7BFF)
+                .setColor(0xFF5B50D6)
                 .setCustomContentView(rv)
                 .setStyle(new Notification.DecoratedCustomViewStyle())
                 .setContentIntent(openPi());
         if (Build.VERSION.SDK_INT < 26) b.setPriority(Notification.PRIORITY_LOW);
         if (Build.VERSION.SDK_INT >= 31) b.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE);
-        b.addAction(new Notification.Action.Builder(0, run ? "Pausa" : "Riprendi", actionPi(run ? "pause" : "resume", 11)).build());
-        b.addAction(new Notification.Action.Builder(0, "+30s", actionPi("add", 12)).build());
-        b.addAction(new Notification.Action.Builder(0, "Stop", actionPi("stop", 13)).build());
+        addTimerActions(b);
+        return b.build();
+    }
+
+    /** Live (Android 16 / One UI 8): notifica standard "promossa" -> pillola nella barra di stato e Now Bar. */
+    private Notification buildLive() {
+        boolean run = TimerState.run;
+        Notification.Builder b = baseBuilder();
+        b.setSmallIcon(smallIcon())
+                .setContentTitle(run ? "Recupero in corso" : "Recupero in pausa")
+                .setContentText(run ? endText() : fmt(TimerState.left) + " rimanenti")
+                .setOngoing(true)
+                .setOnlyAlertOnce(true)
+                .setCategory(Notification.CATEGORY_PROGRESS)
+                .setVisibility(Notification.VISIBILITY_PUBLIC)
+                .setColor(0xFF5B50D6)
+                .setContentIntent(openPi());
+        if (run) {
+            b.setWhen(TimerState.end).setShowWhen(true).setUsesChronometer(true);
+            if (Build.VERSION.SDK_INT >= 24) b.setChronometerCountDown(true);
+        } else {
+            b.setShowWhen(false);
+        }
+        if (Build.VERSION.SDK_INT < 26) b.setPriority(Notification.PRIORITY_LOW);
+        if (Build.VERSION.SDK_INT >= 31) b.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE);
+        addTimerActions(b);
+        try { // API 36: richiesta di promozione a "live update" (si chiama per riflessione, cosi' compila anche con SDK 35)
+            Notification.Builder.class.getMethod("setRequestPromotedOngoing", boolean.class).invoke(b, true);
+        } catch (Throwable ignored) {}
         return b.build();
     }
 
@@ -262,6 +304,9 @@ public class TimerService extends Service {
                 }
             } else {
                 releaseSession();
+            }
+            if (n == null && nstyle() == 1) {
+                try { n = buildLive(); } catch (Throwable e) { n = null; }
             }
             if (n == null) {
                 try { n = buildCustom(); } catch (Throwable e) { n = null; }
