@@ -151,8 +151,7 @@ public class GymerTimerPlugin extends Plugin {
 
     @PluginMethod
     public void setMediaStyle(PluginCall call) {
-        TimerState.mediaStyle = call.getBoolean("on", true);
-        TimerState.save(getContext());
+        TimerState.sp(getContext()).edit().putBoolean("media", call.getBoolean("on", true)).apply();
         if (TimerState.active()) TimerState.refreshService(getContext());
         call.resolve();
     }
