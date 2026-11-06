@@ -1,0 +1,9 @@
+{
+  "appId": "it.gymer.app",
+  "appName": "GYMER",
+  "webDir": "www",
+  "backgroundColor": "#07070d",
+  "android": {
+    "backgroundColor": "#07070d"
+  }
+}
