@@ -5,9 +5,13 @@ cd "$(dirname "$0")"
 ROOT=..
 rm -rf www android out
 mkdir -p www out
-cp "$ROOT/index.html" "$ROOT/manifest.webmanifest" "$ROOT/favicon.ico" www/
-[ -f "$ROOT/sw.js" ] && cp "$ROOT/sw.js" www/
-cp -r "$ROOT/icons" www/icons
+cp "$ROOT/index.html" www/
+# questi file sono facoltativi per l'app: si copiano solo se esistono nel repo
+for f in manifest.webmanifest favicon.ico sw.js; do
+  if [ -f "$ROOT/$f" ]; then cp "$ROOT/$f" www/; else echo "Nota: $f non trovato, salto"; fi
+done
+mkdir -p www/icons
+if [ -d "$ROOT/icons" ]; then cp -r "$ROOT/icons/." www/icons/; else echo "Nota: cartella icons non trovata, icona predefinita"; fi
 npm install --no-audit --no-fund
 npx cap add android
 python3 patch_android.py
