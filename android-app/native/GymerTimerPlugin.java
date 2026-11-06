@@ -1,7 +1,13 @@
 package it.gymer.app;
 
 import android.Manifest;
+import android.app.AlarmManager;
+import android.content.Context;
 import android.content.Intent;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
+import androidx.core.app.NotificationManagerCompat;
+import org.json.JSONArray;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
@@ -84,6 +90,62 @@ public class GymerTimerPlugin extends Plugin {
         TimerState.bubble = call.getBoolean("on", true);
         TimerState.save(getContext());
         if (TimerState.active()) TimerState.refreshService(getContext());
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void diagnose(PluginCall call) {
+        Context c = getContext();
+        JSObject o = new JSObject();
+        o.put("notif", NotificationManagerCompat.from(c).areNotificationsEnabled());
+        o.put("overlay", Build.VERSION.SDK_INT < 23 || Settings.canDrawOverlays(c));
+        boolean exact = true;
+        try { if (Build.VERSION.SDK_INT >= 31) exact = ((AlarmManager) c.getSystemService(Context.ALARM_SERVICE)).canScheduleExactAlarms(); } catch (Exception ignored) {}
+        o.put("exact", exact);
+        o.put("sdk", Build.VERSION.SDK_INT);
+        o.put("active", TimerState.active());
+        o.put("bubble", TimerState.bubble);
+        call.resolve(o);
+    }
+
+    @PluginMethod
+    public void openSettings(PluginCall call) {
+        try {
+            String what = call.getString("what", "notif");
+            Intent i;
+            if ("overlay".equals(what)) {
+                i = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getContext().getPackageName()));
+            } else {
+                i = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, getContext().getPackageName());
+            }
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(i);
+        } catch (Exception ignored) {}
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void test(PluginCall call) {
+        TimerState.snd = call.getData().optInt("snd", 1) == 1;
+        TimerState.vib = call.getData().optInt("vib", 400);
+        TimerState.postDone(getContext());
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void vibrate(PluginCall call) {
+        try {
+            JSONArray a = call.getData().optJSONArray("p");
+            if (a == null || a.length() == 0) { call.resolve(); return; }
+            long[] pat = new long[a.length() + 1];
+            pat[0] = 0;
+            for (int k = 0; k < a.length(); k++) pat[k + 1] = Math.max(1, a.optLong(k, 10));
+            Vibrator v = (Vibrator) getContext().getSystemService(Context.VIBRATOR_SERVICE);
+            if (v != null) {
+                if (Build.VERSION.SDK_INT >= 26) v.vibrate(VibrationEffect.createWaveform(pat, -1));
+                else v.vibrate(pat, -1);
+            }
+        } catch (Exception ignored) {}
         call.resolve();
     }
 
