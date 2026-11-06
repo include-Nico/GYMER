@@ -59,6 +59,38 @@ open(os.path.join(dr, "ic_stat_timer.xml"), "w").write('''<vector xmlns:android=
 </vector>
 ''')
 
+# 3b) layout della notifica del timer (tempo grande che scorre)
+lyd = os.path.join(APP, "res", "layout")
+os.makedirs(lyd, exist_ok=True)
+open(os.path.join(lyd, "gymer_notif.xml"), "w").write('''<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+    <TextView
+        android:id="@+id/gn_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="@android:style/TextAppearance.Material.Notification.Title"
+        android:textSize="14sp"
+        android:singleLine="true" />
+    <Chronometer
+        android:id="@+id/gn_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="@android:style/TextAppearance.Material.Notification.Title"
+        android:textSize="38sp"
+        android:textStyle="bold" />
+    <TextView
+        android:id="@+id/gn_sub"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="@android:style/TextAppearance.Material.Notification"
+        android:textSize="12sp"
+        android:singleLine="true" />
+</LinearLayout>
+''')
+
 # 4) splash scura (niente lampo bianco all'avvio)
 for root, _, files in os.walk(os.path.join(APP, "res")):
     for f in files:
