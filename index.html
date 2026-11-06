@@ -278,7 +278,13 @@ function afin(sv){const s=aStats();clearInterval(A.iv);if(A.wid!=null)navigator.
  if(AL){cl(AL);AL=null}A=null;$("#apill").classList.remove("show");render(true)}
 function liveCard(){return`<h2>Registra con GPS</h2><div class="g" style="padding:16px"><div class="seg" style="margin-bottom:12px">${Object.keys(AKS).map(k=>`<button class="gb ${AK===k?"on":""}" data-a="ak" data-v="${k}">${I(AKS[k][1])}${AKS[k][0]}</button>`).join("")}</div><button class="gb on" data-a="${A?"ashow":"astart"}" style="width:100%;padding:14px">${I(A?"timer":"play")} ${A?"Torna all’attività in corso":"Avvia attività"}</button><div class="mu" style="text-align:center;margin-top:10px;font-size:12px">Tieni lo schermo acceso e il telefono con te: percorso, ritmo e calorie si calcolano col GPS.</div></div>`}
 /* ---------- APP ANDROID (Capacitor): timer nativo ---------- */
-let NATIVE=false,GT=null;try{NATIVE=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());if(NATIVE)GT=Capacitor.registerPlugin("GymerTimer")}catch(e){}
+let NATIVE=false,GT=null;
+function mkGT(){const C=window.Capacitor;
+ try{const x=C.registerPlugin("GymerTimer");if(x&&typeof x.sync==="function")return x}catch(e){window.__gtErr="registerPlugin: "+(e&&e.message||e)}
+ try{if(C.Plugins&&C.Plugins.GymerTimer)return C.Plugins.GymerTimer}catch(e){}
+ try{if(typeof C.nativePromise==="function")return new Proxy({},{get:(_,m)=>m==="addListener"?(ev,cb)=>{try{return C.addListener("GymerTimer",ev,cb)}catch(e){}}:(o)=>C.nativePromise("GymerTimer",m,o||{})})}catch(e){window.__gtErr=(window.__gtErr||"")+" | nativePromise: "+(e&&e.message||e)}
+ return null}
+try{NATIVE=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());if(NATIVE)GT=mkGT()}catch(e){window.__gtErr=String(e&&e.message||e)}
 /* ---------- TIMER ---------- */
 const T={total:db.timers[0],left:db.timers[0],end:0,run:false,iv:null},R=104,C=2*Math.PI*R;
 const rem=()=>T.run?Math.max(0,(T.end-Date.now())/1000):T.left;
@@ -428,7 +434,7 @@ document.addEventListener("click",ev=>{
  else if(a==="notif"){beep();try{Notification.requestPermission().then(p=>toast(p==="granted"?"Notifiche abilitate":"Notifiche non concesse"))}catch(x){toast("Notifiche non supportate qui")}}
  else if(a==="bub"){(async()=>{const on=db.bubble===false;db.bubble=on;save();if(on){try{const r=await GT.overlayStatus();if(!r.granted){toast("Concedi “Mostra sopra altre app” a GYMER");GT.requestOverlay()}}catch(e){}}try{GT.setBubble({on})}catch(e){}render(true)})()}
  else if(a==="mst"){db.mstyle=db.mstyle===false;save();try{GT.setMediaStyle({on:db.mstyle!==false})}catch(e){}render(true)}
- else if(a==="diag"){(async()=>{try{const d=await GT.diagnose();alert("Notifiche: "+(d.notif?"OK":"DISATTIVATE")+"\nMostra sopra altre app: "+(d.overlay?"OK":"NON CONCESSO")+"\nAllarmi precisi: "+(d.exact?"OK":"NON CONCESSO")+"\nAndroid API "+d.sdk+"\nTimer attivo: "+(d.active?"sì":"no"));if(!d.notif&&confirm("Aprire le impostazioni delle notifiche di GYMER?"))GT.openSettings({what:"notif"});else if(!d.overlay&&confirm("Aprire il permesso “Mostra sopra altre app”?"))GT.openSettings({what:"overlay"})}catch(e){alert("Errore plugin nativo: "+(e&&e.message||e))}})()}
+ else if(a==="diag"){(async()=>{try{if(!GT){alert("Plugin nativo non caricato.\n"+(window.__gtErr||"nessun errore")+"\nCapacitor: "+Object.keys(window.Capacitor||{}).join(","));return}const d=await GT.diagnose();alert("Notifiche: "+(d.notif?"OK":"DISATTIVATE")+"\nMostra sopra altre app: "+(d.overlay?"OK":"NON CONCESSO")+"\nAllarmi precisi: "+(d.exact?"OK":"NON CONCESSO")+"\nAndroid API "+d.sdk+"\nTimer attivo: "+(d.active?"sì":"no"));if(!d.notif&&confirm("Aprire le impostazioni delle notifiche di GYMER?"))GT.openSettings({what:"notif"});else if(!d.overlay&&confirm("Aprire il permesso “Mostra sopra altre app”?"))GT.openSettings({what:"overlay"})}catch(e){alert("Errore plugin nativo: "+(e&&e.message||e))}})()}
  else if(a==="ntest"){try{GT.test({snd:(db.snd.v>0&&db.snd.t!=="muto")?1:0,vib:db.snd.vib>0?db.snd.vib:0}).then(()=>toast("Avviso inviato")).catch(e=>alert("Errore: "+(e&&e.message||e)))}catch(e){alert("Plugin nativo non disponibile")}}
  else if(a==="pip")pipToggle();else if(a==="play")resume();else if(a==="pause")pause();else if(a==="reset")reset();
  else if(a==="start")start(+v);else if(a==="add")addT(+v);
