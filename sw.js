@@ -1,5 +1,5 @@
 /* GYMER service worker: offline shell + notifiche timer */
-const CACHE = "gymer-v8";
+const CACHE = "gymer-v9";
 const SHELL = ["/", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (e) => {
