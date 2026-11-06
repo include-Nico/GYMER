@@ -208,21 +208,40 @@ public class TimerService extends Service {
 
     private boolean media() { return TimerState.sp(this).getBoolean("media", true); }
 
+    private Notification buildMinimal() {
+        Notification.Builder b = Build.VERSION.SDK_INT >= 26 ? new Notification.Builder(this, CH) : new Notification.Builder(this);
+        b.setSmallIcon(smallIcon()).setContentTitle("GYMER").setContentText("Timer in corso").setOngoing(true).setContentIntent(openPi());
+        return b.build();
+    }
+
     private void startFg() {
-        Notification n;
-        if (media() && TimerState.active()) {
-            try {
-                ensureSession();
-                updateSession();
-                n = buildMedia();
-            } catch (Exception e) {
+        ensureChannel(); // senza canale valido Android chiude l'app (notifica del servizio non valida)
+        Notification n = null;
+        try {
+            if (media() && TimerState.active()) {
+                try {
+                    ensureSession();
+                    updateSession();
+                    n = buildMedia();
+                } catch (Throwable e) {
+                    releaseSession();
+                    n = null;
+                }
+            } else {
                 releaseSession();
-                n = buildClassic();
             }
-        } else {
-            releaseSession();
-            n = buildClassic();
+            if (n == null) n = buildClassic();
+        } catch (Throwable e) {
+            n = buildMinimal();
         }
+        try {
+            post(n);
+        } catch (Throwable e) {
+            post(buildMinimal());
+        }
+    }
+
+    private void post(Notification n) {
         if (Build.VERSION.SDK_INT >= 34) startForeground(TimerState.ID_RUN, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
         else startForeground(TimerState.ID_RUN, n);
     }
