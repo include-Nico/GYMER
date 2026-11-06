@@ -27,7 +27,8 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - uses: android-actions/setup-android@v3
+      - name: Accetta licenze Android SDK (SDK gia presente sul runner)
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
       - name: Costruisci APK
         env:
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
