@@ -151,6 +151,7 @@ body{transition:background-color .4s,color .4s}.bg i{transition:opacity .6s}
 <div id="mini" class="g"></div>
 <div id="apill" class="g" data-a="ashow"></div>
 <nav id="nav" class="g"></nav>
+<script>(function(){function show(m){try{var d=document.getElementById("__err");if(!d){d=document.createElement("pre");d.id="__err";d.style.cssText="position:fixed;z-index:99999;top:70px;left:8px;right:8px;max-height:55vh;overflow:auto;background:#3a0a0a;color:#fff;font:11px/1.4 monospace;padding:10px;border-radius:10px;white-space:pre-wrap;margin:0";(document.body||document.documentElement).appendChild(d)}d.textContent+=m+"\n"}catch(_){}}window.addEventListener("error",function(e){show("Errore: "+(e.message||"")+" (riga "+(e.lineno||"?")+")")});window.addEventListener("unhandledrejection",function(e){show("Promise: "+(e.reason&&e.reason.message||e.reason))})})();</script>
 <script>
 const $=s=>document.querySelector(s),uid=()=>Math.random().toString(36).slice(2,8);
 const I=(n,c="")=>`<svg class="ic ${c}"><use href="#i-${n}"/></svg>`;
@@ -277,7 +278,7 @@ function afin(sv){const s=aStats();clearInterval(A.iv);if(A.wid!=null)navigator.
  if(AL){cl(AL);AL=null}A=null;$("#apill").classList.remove("show");render(true)}
 function liveCard(){return`<h2>Registra con GPS</h2><div class="g" style="padding:16px"><div class="seg" style="margin-bottom:12px">${Object.keys(AKS).map(k=>`<button class="gb ${AK===k?"on":""}" data-a="ak" data-v="${k}">${I(AKS[k][1])}${AKS[k][0]}</button>`).join("")}</div><button class="gb on" data-a="${A?"ashow":"astart"}" style="width:100%;padding:14px">${I(A?"timer":"play")} ${A?"Torna all’attività in corso":"Avvia attività"}</button><div class="mu" style="text-align:center;margin-top:10px;font-size:12px">Tieni lo schermo acceso e il telefono con te: percorso, ritmo e calorie si calcolano col GPS.</div></div>`}
 /* ---------- APP ANDROID (Capacitor): timer nativo ---------- */
-const NATIVE=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform()),GT=NATIVE?Capacitor.registerPlugin("GymerTimer"):null;
+let NATIVE=false,GT=null;try{NATIVE=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());if(NATIVE)GT=Capacitor.registerPlugin("GymerTimer")}catch(e){}
 /* ---------- TIMER ---------- */
 const T={total:db.timers[0],left:db.timers[0],end:0,run:false,iv:null},R=104,C=2*Math.PI*R;
 const rem=()=>T.run?Math.max(0,(T.end-Date.now())/1000):T.left;
