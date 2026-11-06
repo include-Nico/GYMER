@@ -16,6 +16,9 @@ npm install --no-audit --no-fund
 npx cap add android
 python3 patch_android.py
 npx cap sync android
+echo "--- file nativi usati nella build ---"
+ls -la native/*.java
+grep -n "class TimerState" native/TimerState.java || echo "ATTENZIONE: TimerState.java non trovato"
 # firma stabile: stessa chiave a ogni build, cosi' l'APK si aggiorna sopra quello gia' installato
 mkdir -p "$HOME/.android"
 cp debug.keystore "$HOME/.android/debug.keystore"
