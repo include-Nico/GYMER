@@ -150,6 +150,14 @@ public class GymerTimerPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void setMediaStyle(PluginCall call) {
+        TimerState.mediaStyle = call.getBoolean("on", true);
+        TimerState.save(getContext());
+        if (TimerState.active()) TimerState.refreshService(getContext());
+        call.resolve();
+    }
+
+    @PluginMethod
     public void requestNotif(PluginCall call) {
         if (Build.VERSION.SDK_INT >= 33 && getPermissionState("notif") != PermissionState.GRANTED) {
             requestPermissionForAlias("notif", call, "notifCb");
