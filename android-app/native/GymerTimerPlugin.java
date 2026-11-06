@@ -151,7 +151,17 @@ public class GymerTimerPlugin extends Plugin {
 
     @PluginMethod
     public void setMediaStyle(PluginCall call) {
-        TimerState.sp(getContext()).edit().putBoolean("mstyle2", call.getBoolean("on", false)).apply();
+        int st = call.getBoolean("on", false) ? 2 : 0;
+        TimerState.sp(getContext()).edit().putInt("nstyle", st).apply();
+        if (TimerState.active()) TimerState.refreshService(getContext());
+        call.resolve();
+    }
+
+    /** 0 = riquadro (stile Samsung), 1 = live Android 16, 2 = lettore musicale */
+    @PluginMethod
+    public void setNotifStyle(PluginCall call) {
+        int st = Math.max(0, Math.min(2, call.getData().optInt("style", 0)));
+        TimerState.sp(getContext()).edit().putInt("nstyle", st).apply();
         if (TimerState.active()) TimerState.refreshService(getContext());
         call.resolve();
     }
