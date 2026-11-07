@@ -396,7 +396,7 @@ function vSet(){const P=db.prof,w=bwv(),bmi=P.h&&w?w/Math.pow(P.h/100,2):0;retur
  <div class="col ${OPEN.bk?"open":""}" id="c-bk"><div><div class="g" style="padding:14px;margin-top:12px"><textarea id="bk" rows="4" placeholder="Il JSON appare qui. Incolla qui per importare."></textarea><div class="seg" style="margin-top:10px"><button class="gb" data-a="exp">${I("down")} Esporta</button><button class="gb on" data-a="imp">${I("up")} Importa</button></div><input id="fi" type="file" accept=".json,application/json" style="margin-top:10px;text-align:left"></div></div></div>`}
 const TABS=[["train","dumbbell","Allena"],["timer","timer","Timer"],["prog","trend","Progressi"],["set","user","Profilo"]];
 function render(keep){
- document.documentElement.dataset.theme=db.theme;{const A=ACC[db.ac||0],s=document.documentElement.style;s.setProperty("--ac",A[0]);s.setProperty("--ac2",A[1])}
+ document.documentElement.dataset.theme=db.theme;{const A=ACC[db.ac||0],s=document.documentElement.style;s.setProperty("--ac",A[0]);s.setProperty("--ac2",A[1]);if(NATIVE&&GT&&window.__cc!==A[0]+A[1]){window.__cc=A[0]+A[1];try{GT.setColors({a:A[0],b:A[1]})}catch(e){}}}
  const m=$("#main");m.innerHTML={train:vTrain,timer:vTimer,prog:vProg,set:vSet}[tab]();
  if(!keep){m.className="e p"+DIR;clearTimeout(RT);RT=setTimeout(()=>{m.className=""},1000)}
  navUpd();mini();
