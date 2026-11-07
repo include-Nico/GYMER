@@ -105,6 +105,12 @@ public class GymerTimerPlugin extends Plugin {
         o.put("sdk", Build.VERSION.SDK_INT);
         o.put("active", TimerState.active());
         o.put("bubble", TimerState.bubble);
+        // Android 16+: l'utente puo' aver disattivato le "notifiche live" per l'app
+        try {
+            android.app.NotificationManager nm = (android.app.NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
+            Object r = android.app.NotificationManager.class.getMethod("canPostPromotedNotifications").invoke(nm);
+            if (r instanceof Boolean) o.put("promo", (Boolean) r);
+        } catch (Throwable ignored) {}
         call.resolve(o);
     }
 
@@ -115,6 +121,12 @@ public class GymerTimerPlugin extends Plugin {
             Intent i;
             if ("overlay".equals(what)) {
                 i = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getContext().getPackageName()));
+            } else if ("live".equals(what)) {
+                // Android 16: pagina diretta "notifiche live" dell'app (non serve cercarla nell'elenco)
+                i = new Intent("android.settings.APP_NOTIFICATION_PROMOTION_SETTINGS").putExtra(Settings.EXTRA_APP_PACKAGE, getContext().getPackageName());
+                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                try { getContext().startActivity(i); call.resolve(); return; } catch (Exception e) { /* ripiega sulle notifiche dell'app */ }
+                i = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, getContext().getPackageName());
             } else {
                 i = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, getContext().getPackageName());
             }
