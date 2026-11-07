@@ -191,7 +191,7 @@ public class TimerService extends Service {
                 .setOnlyAlertOnce(true)
                 .setCategory(Notification.CATEGORY_TRANSPORT)
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
-                .setColor(0xFF8B7BFF)
+                .setColor(c1())
                 .setContentIntent(openPi());
         if (Build.VERSION.SDK_INT < 26) b.setPriority(Notification.PRIORITY_LOW);
         if (run) {
@@ -217,6 +217,10 @@ public class TimerService extends Service {
         return p.getBoolean("mstyle2", false) ? 2 : 0;
     }
     private boolean media() { return nstyle() == 2; }
+
+    /** Colori del tema scelto nell'app (inviati dalla pagina con setColors). */
+    private int c1() { return TimerState.sp(this).getInt("c1", 0xFF8B7BFF); }
+    private int c2() { return TimerState.sp(this).getInt("c2", 0xFF27D7FF); }
 
     private int rid(String name, String type) { return getResources().getIdentifier(name, type, getPackageName()); }
 
@@ -248,7 +252,7 @@ public class TimerService extends Service {
                 .setShowWhen(false)
                 .setCategory(Notification.CATEGORY_PROGRESS)
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
-                .setColor(0xFF5B50D6)
+                .setColor(c1())
                 .setCustomContentView(rv)
                 .setStyle(new Notification.DecoratedCustomViewStyle())
                 .setContentIntent(openPi());
@@ -269,7 +273,7 @@ public class TimerService extends Service {
                 .setOnlyAlertOnce(true)
                 .setCategory(Notification.CATEGORY_PROGRESS)
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
-                .setColor(0xFF5B50D6)
+                .setColor(c1())
                 .setContentIntent(openPi());
         if (run) {
             b.setWhen(TimerState.end).setShowWhen(true).setUsesChronometer(true);
@@ -632,7 +636,7 @@ public class TimerService extends Service {
         int a, b;
         if (!TimerState.run) { a = 0xFF9AA0B4; b = 0xFF6F7690; }
         else if (rem <= 10000) { a = 0xFFFF6B6B; b = 0xFFFFB14A; }
-        else { a = 0xFF8B7BFF; b = 0xFF27D7FF; }
+        else { a = c1(); b = c2(); }
         ring.set(frac, fmt(rem), a, b);
         bPlay.setType(TimerState.run ? IconBtn.PAUSE : IconBtn.PLAY);
     }
