@@ -178,6 +178,18 @@ public class GymerTimerPlugin extends Plugin {
         call.resolve();
     }
 
+    /** Colori del tema dell'app (es. "#ff5fa2"): usati da bolla e notifica. */
+    @PluginMethod
+    public void setColors(PluginCall call) {
+        try {
+            int a = android.graphics.Color.parseColor(call.getString("a", "#8b7bff"));
+            int b = android.graphics.Color.parseColor(call.getString("b", "#27d7ff"));
+            TimerState.sp(getContext()).edit().putInt("c1", a | 0xFF000000).putInt("c2", b | 0xFF000000).apply();
+            if (TimerState.active()) TimerState.refreshService(getContext());
+        } catch (Exception ignored) {}
+        call.resolve();
+    }
+
     @PluginMethod
     public void requestNotif(PluginCall call) {
         if (Build.VERSION.SDK_INT >= 33 && getPermissionState("notif") != PermissionState.GRANTED) {
