@@ -169,6 +169,7 @@ try:
         print("ATTENZIONE: icone di GYMER non trovate nel repo: uso un'icona provvisoria", file=sys.stderr)
     print("Icona usata (legacy):", flat, "| (adattiva):", fg)
 
+    mono = first(os.path.join(ICONS, "icon-monochrome-432.png"))
     dens = {"mdpi": (48, 108), "hdpi": (72, 162), "xhdpi": (96, 216), "xxhdpi": (144, 324), "xxxhdpi": (192, 432)}
     res = os.path.join(APP, "res")
     for d, (legacy, adaptive) in dens.items():
@@ -176,6 +177,8 @@ try:
         conv(flat, os.path.join(base, "ic_launcher.png"), legacy)
         conv(flat, os.path.join(base, "ic_launcher_round.png"), legacy)
         conv(fg, os.path.join(base, "ic_launcher_foreground.png"), adaptive)
+        if mono:
+            conv(mono, os.path.join(base, "ic_launcher_monochrome.png"), adaptive)
     any26 = os.path.join(res, "mipmap-anydpi-v26")
     os.makedirs(any26, exist_ok=True)
     for n in ("ic_launcher.xml", "ic_launcher_round.xml"):
@@ -183,7 +186,7 @@ try:
     <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
         <background android:drawable="@color/gymer_icon_bg"/>
         <foreground android:drawable="@mipmap/ic_launcher_foreground"/>
-    </adaptive-icon>
+''' + ('        <monochrome android:drawable="@mipmap/ic_launcher_monochrome"/>\n' if mono else '') + '''    </adaptive-icon>
     ''')
     os.makedirs(os.path.join(res, "values"), exist_ok=True)
     open(os.path.join(res, "values", "gymer_colors.xml"), "w").write('''<?xml version="1.0" encoding="utf-8"?>
