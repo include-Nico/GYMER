@@ -1,7 +1,7 @@
 package it.gymer.app;
 
 import android.app.AlarmManager;
-import android.app.Notification;
+import android.app.KeyguardManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -12,6 +12,7 @@ import android.media.AudioAttributes;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.PowerManager;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
@@ -140,6 +141,18 @@ public final class TimerState {
         if (active()) refreshService(c);
     }
 
+    private static boolean isScreenLockedOrOff(Context c) {
+        try {
+            PowerManager pm = (PowerManager) c.getSystemService(Context.POWER_SERVICE);
+            boolean screenOff = pm != null && !pm.isInteractive();
+            KeyguardManager km = (KeyguardManager) c.getSystemService(Context.KEYGUARD_SERVICE);
+            boolean locked = km != null && km.isKeyguardLocked();
+            return screenOff || locked;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     // ---------- fine recupero ----------
     public static synchronized void finish(Context c) {
         if (!run) return;
@@ -149,7 +162,21 @@ public final class TimerState {
         try { ((AlarmManager) c.getSystemService(Context.ALARM_SERVICE)).cancel(alarmPi(c)); } catch (Exception ignored) {}
         try { c.stopService(new Intent(c, TimerService.class)); } catch (Exception ignored) {}
         try { ((NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE)).cancel(ID_RUN); } catch (Exception ignored) {}
-        if (!foreground) postDone(c);
+
+        if (isScreenLockedOrOff(c)) {
+            // Schermo nero o telefono bloccato -> accendi lo schermo con notifica di fine timer e 'X' da trascinare
+            try {
+                Intent lockDone = new Intent(c, LockScreenActivity.class);
+                lockDone.putExtra("mode", "done");
+                lockDone.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                c.startActivity(lockDone);
+            } catch (Exception e) {
+                postDone(c);
+            }
+        } else if (!foreground) {
+            // Telefono sbloccato -> solita notifica e vibrazione
+            postDone(c);
+        }
         changed();
     }
 
