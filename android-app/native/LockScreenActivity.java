@@ -12,7 +12,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.TypedValue;
 import android.view.Gravity;
-import android.view.View;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -91,7 +90,7 @@ public class LockScreenActivity extends Activity {
         };
         ring.track.setStrokeWidth(dp(8));
         ring.arc.setStrokeWidth(dp(8));
-        ring.txt.setTextSize(TypedValue.COMPLEX_UNIT_SP, 38);
+        ring.txt.setTextSize(dp(38));
         LinearLayout.LayoutParams rlp = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         rlp.topMargin = dp(20);
