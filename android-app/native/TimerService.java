@@ -6,8 +6,10 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ServiceInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -44,7 +46,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-/** Servizio in primo piano: notifica nativa Samsung (Now Bar / Riquadro espanso) + bolla flottante. */
+/** Servizio in primo piano: notifica nativa Samsung (Now Bar / Riquadro espanso), bolla flottante e scheda lockscreen. */
 public class TimerService extends Service {
     // v3: IMPORTANCE_HIGH senza suono -> forza One UI a tenere la scheda aperta in schermata di blocco
     static final String CH = "gymer_run3";
@@ -54,6 +56,19 @@ public class TimerService extends Service {
     private WindowManager wm;
     private MediaSession ms;
     private long lastLiveSec = -1;
+
+    private final BroadcastReceiver screenOffRx = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction()) && TimerState.active()) {
+                try {
+                    Intent i = new Intent(TimerService.this, LockScreenActivity.class);
+                    i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    startActivity(i);
+                } catch (Exception ignored) {}
+            }
+        }
+    };
 
     // bolla
     private LinearLayout bubbleView;
@@ -72,7 +87,7 @@ public class TimerService extends Service {
                 return;
             }
             updateBubble();
-            // Aggiorna la pillola Live / Now Bar ogni secondo quando lo stile Live (1) è attivo
+            // Aggiorna la pillola Live / Now Bar ogni secondo quando lo stile Live (1) e' attivo
             if (nstyle() == 1 && TimerState.run) {
                 long sec = (TimerState.remaining() + 999) / 1000;
                 if (sec != lastLiveSec) {
@@ -95,6 +110,9 @@ public class TimerService extends Service {
     public void onCreate() {
         super.onCreate();
         wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+        try {
+            registerReceiver(screenOffRx, new IntentFilter(Intent.ACTION_SCREEN_OFF));
+        } catch (Exception ignored) {}
     }
 
     @Override
@@ -119,6 +137,7 @@ public class TimerService extends Service {
 
     @Override
     public void onDestroy() {
+        try { unregisterReceiver(screenOffRx); } catch (Exception ignored) {}
         h.removeCallbacksAndMessages(null);
         removeBubble();
         releaseSession();
@@ -216,7 +235,7 @@ public class TimerService extends Service {
         } else {
             b.setShowWhen(false);
         }
-        if (Build.VERSION.SDK_INT >= 31) b.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE);
+        if (Build.VERSION.SDK_INT >= 31) b.setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE);
         b.addAction(mAct(android.R.drawable.ic_media_previous, "Azzera", "stop", 13));
         b.addAction(mAct(run ? android.R.drawable.ic_media_pause : android.R.drawable.ic_media_play, run ? "Pausa" : "Riprendi", run ? "pause" : "resume", 11));
         b.addAction(mAct(android.R.drawable.ic_media_next, "+30s", "add", 12));
@@ -277,7 +296,7 @@ public class TimerService extends Service {
                 .setContentIntent(openPi());
         if (Build.VERSION.SDK_INT >= 26) b.setColorized(true);
         if (Build.VERSION.SDK_INT < 26) b.setPriority(Notification.PRIORITY_HIGH);
-        if (Build.VERSION.SDK_INT >= 31) b.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE);
+        if (Build.VERSION.SDK_INT >= 31) b.setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE);
         addTimerActions(b);
         return b.build();
     }
@@ -305,7 +324,7 @@ public class TimerService extends Service {
             b.setShowWhen(false);
         }
         if (Build.VERSION.SDK_INT < 26) b.setPriority(Notification.PRIORITY_HIGH);
-        if (Build.VERSION.SDK_INT >= 31) b.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE);
+        if (Build.VERSION.SDK_INT >= 31) b.setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE);
         addTimerActions(b);
         // API 36 (Android 16 / One UI 8): requisiti completi per promozione a Live Update / Now Bar
         try {
