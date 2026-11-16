@@ -12,6 +12,7 @@ os.makedirs(PKG_DIR, exist_ok=True)
 for f in os.listdir(os.path.join(HERE, "native")):
     if f.endswith(".java"):
         shutil.copy(os.path.join(HERE, "native", f), os.path.join(PKG_DIR, f))
+
 # elimina un eventuale MainActivity creato in un altro package dal template
 for root, _, files in os.walk(os.path.join(APP, "java")):
     for f in files:
@@ -35,6 +36,7 @@ perms = [
 add = "\n    ".join(p for p in perms if p.split('"')[1] not in x)
 if add:
     x = x.replace("</manifest>", "    " + add + "\n</manifest>")
+
 comp = '''
         <service
             android:name=".TimerService"
@@ -53,7 +55,7 @@ open(mf, "w", encoding="utf-8").write(x)
 # 3) icona piccola della notifica
 dr = os.path.join(APP, "res", "drawable")
 os.makedirs(dr, exist_ok=True)
-open(os.path.join(dr, "ic_stat_timer.xml"), "w").write('''<vector xmlns:android="http://schemas.android.com/apk/res/android"
+open(os.path.join(dr, "ic_stat_timer.xml"), "w", encoding="utf-8").write('''<vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
     <path android:fillColor="#FFFFFFFF"
         android:pathData="M9,1h6v2L9,3zM19.03,7.39l1.42,-1.42c-0.43,-0.51 -0.9,-0.99 -1.41,-1.41l-1.42,1.42C16.07,4.74 14.12,4 12,4c-4.97,0 -9,4.03 -9,9s4.02,9 9,9 9,-4.03 9,-9c0,-2.12 -0.74,-4.07 -1.97,-5.61zM13,14h-2L11,8h2z"/>
@@ -63,7 +65,7 @@ open(os.path.join(dr, "ic_stat_timer.xml"), "w").write('''<vector xmlns:android=
 # 3b) layout della notifica del timer: riquadro con clessidra + tempo grande (stile timer Samsung)
 lyd = os.path.join(APP, "res", "layout")
 os.makedirs(lyd, exist_ok=True)
-open(os.path.join(lyd, "gymer_notif.xml"), "w").write('''<?xml version="1.0" encoding="utf-8"?>
+open(os.path.join(lyd, "gymer_notif.xml"), "w", encoding="utf-8").write('''<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -98,7 +100,8 @@ open(os.path.join(lyd, "gymer_notif.xml"), "w").write('''<?xml version="1.0" enc
     </LinearLayout>
 </LinearLayout>
 ''')
-open(os.path.join(dr, "gn_tile.xml"), "w").write('''<?xml version="1.0" encoding="utf-8"?>
+
+open(os.path.join(dr, "gn_tile.xml"), "w", encoding="utf-8").write('''<?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape android:shape="rectangle">
@@ -120,85 +123,82 @@ for root, _, files in os.walk(os.path.join(APP, "res")):
     for f in files:
         if f in ("splash.png", "splash.jpg"):
             os.remove(os.path.join(root, f))
-open(os.path.join(dr, "splash.xml"), "w").write('''<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+open(os.path.join(dr, "splash.xml"), "w", encoding="utf-8").write('''<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item><color android:color="#07070d"/></item>
 </layer-list>
 ''')
 
 # 5) icona dell'app (adattiva + legacy) tramite Pillow
 try:
-    try:
-        from PIL import Image
-    except ImportError:
-        subprocess.run([sys.executable, "-m", "pip", "install", "-q", "Pillow"], check=True)
-        from PIL import Image
+    from PIL import Image
+except ImportError:
+    subprocess.run([sys.executable, "-m", "pip", "install", "-q", "Pillow"], check=True)
+    from PIL import Image
 
-    def conv(src, dst, size):
-        os.makedirs(os.path.dirname(dst), exist_ok=True)
-        with Image.open(src) as im:
-            im = im.convert("RGBA").resize((size, size), Image.Resampling.LANCZOS)
-            im.save(dst, "PNG")
+def conv(src, dst, size):
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
+    with Image.open(src) as im:
+        im = im.convert("RGBA").resize((size, size), Image.Resampling.LANCZOS)
+        im.save(dst, "PNG")
 
-    WWW = os.path.join(HERE, "www")
-    print("Contenuto di www/icons:", sorted(os.listdir(ICONS)) if os.path.isdir(ICONS) else "(cartella assente)")
+WWW = os.path.join(HERE, "www")
+print("Contenuto di www/icons:", sorted(os.listdir(ICONS)) if os.path.isdir(ICONS) else "(cartella assente)")
 
-    def first(*paths):
-        for q in paths:
-            if os.path.exists(q):
-                return q
-        return None
+def first(*paths):
+    for q in paths:
+        if os.path.exists(q):
+            return q
+    return None
 
-    flat = first(
-        os.path.join(ICONS, "icon-512.png"),
-        os.path.join(ICONS, "icon-192.png"),
-        os.path.join(ICONS, "apple-touch-icon.png"),
-        os.path.join(WWW, "icon-512.png")
-    )
-    fg = first(os.path.join(ICONS, "icon-maskable-512.png"), os.path.join(ICONS, "icon-maskable-192.png")) or flat
-    mono = first(os.path.join(ICONS, "icon-monochrome-432.png"))
+flat = first(
+    os.path.join(ICONS, "icon-512.png"),
+    os.path.join(ICONS, "icon-192.png"),
+    os.path.join(ICONS, "apple-touch-icon.png"),
+    os.path.join(WWW, "icon-512.png")
+)
+fg = first(os.path.join(ICONS, "icon-maskable-512.png"), os.path.join(ICONS, "icon-maskable-192.png")) or flat
+mono = first(os.path.join(ICONS, "icon-monochrome-432.png"))
 
-    if not flat:
-        raise FileNotFoundError("Nessuna icona PNG trovata in www/icons")
+if not flat:
+    raise FileNotFoundError("Nessuna icona PNG trovata in www/icons")
 
-    print("Icona usata (legacy):", flat, "| (adattiva):", fg, "| (mono):", mono)
+print("Icona usata (legacy):", flat, "| (adattiva):", fg, "| (mono):", mono)
 
-    res = os.path.join(APP, "res")
-    # Rimuovi tutte le icone predefinite del template Capacitor per evitare conflitti di risorse
-    for root, _, files in os.walk(res):
-        for f in files:
-            if f.startswith("ic_launcher"):
-                os.remove(os.path.join(root, f))
+res = os.path.join(APP, "res")
+# Rimuovi tutte le icone predefinite del template Capacitor per evitare conflitti di risorse
+for root, _, files in os.walk(res):
+    for f in files:
+        if f.startswith("ic_launcher"):
+            os.remove(os.path.join(root, f))
 
-    dens = {"mdpi": (48, 108), "hdpi": (72, 162), "xhdpi": (96, 216), "xxhdpi": (144, 324), "xxxhdpi": (192, 432)}
-    for d, (legacy, adaptive) in dens.items():
-        base = os.path.join(res, "mipmap-" + d)
-        conv(flat, os.path.join(base, "ic_launcher.png"), legacy)
-        conv(flat, os.path.join(base, "ic_launcher_round.png"), legacy)
-        conv(fg, os.path.join(base, "ic_launcher_foreground.png"), adaptive)
-        if mono:
-            conv(mono, os.path.join(base, "ic_launcher_monochrome.png"), adaptive)
+dens = {"mdpi": (48, 108), "hdpi": (72, 162), "xhdpi": (96, 216), "xxhdpi": (144, 324), "xxxhdpi": (192, 432)}
+for d, (legacy, adaptive) in dens.items():
+    base = os.path.join(res, "mipmap-" + d)
+    conv(flat, os.path.join(base, "ic_launcher.png"), legacy)
+    conv(flat, os.path.join(base, "ic_launcher_round.png"), legacy)
+    conv(fg, os.path.join(base, "ic_launcher_foreground.png"), adaptive)
+    if mono:
+        conv(mono, os.path.join(base, "ic_launcher_monochrome.png"), adaptive)
 
-    any26 = os.path.join(res, "mipmap-anydpi-v26")
-    os.makedirs(any26, exist_ok=True)
-    for n in ("ic_launcher.xml", "ic_launcher_round.xml"):
-        with open(os.path.join(any26, n), "w", encoding="utf-8") as fp:
-            fp.write('''<?xml version="1.0" encoding="utf-8"?>
+any26 = os.path.join(res, "mipmap-anydpi-v26")
+os.makedirs(any26, exist_ok=True)
+for n in ("ic_launcher.xml", "ic_launcher_round.xml"):
+    with open(os.path.join(any26, n), "w", encoding="utf-8") as fp:
+        fp.write('''<?xml version="1.0" encoding="utf-8"?>
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
     <background android:drawable="@color/gymer_icon_bg"/>
     <foreground android:drawable="@mipmap/ic_launcher_foreground"/>
 ''' + ('    <monochrome android:drawable="@mipmap/ic_launcher_monochrome"/>\n' if mono else '') + '''</adaptive-icon>
 ''')
 
-    os.makedirs(os.path.join(res, "values"), exist_ok=True)
-    with open(os.path.join(res, "values", "gymer_colors.xml"), "w", encoding="utf-8") as fp:
-        fp.write('''<?xml version="1.0" encoding="utf-8"?>
+os.makedirs(os.path.join(res, "values"), exist_ok=True)
+with open(os.path.join(res, "values", "gymer_colors.xml"), "w", encoding="utf-8") as fp:
+    fp.write('''<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="gymer_icon_bg">#07070D</color>
 </resources>
 ''')
-
-except Exception as exc:
-    print("ATTENZIONE: icona non applicata (" + repr(exc) + "), resta quella predefinita", file=sys.stderr)
 
 # 6) versione = numero della build (serve per aggiornare sopra la versione precedente)
 vc = os.environ.get("GITHUB_RUN_NUMBER", "1")
