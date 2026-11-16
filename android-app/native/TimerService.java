@@ -44,14 +44,16 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-/** Servizio in primo piano: notifica (stile lettore multimediale o classica) + bolla flottante moderna. */
+/** Servizio in primo piano: notifica nativa Samsung (Now Bar / Riquadro espanso) + bolla flottante. */
 public class TimerService extends Service {
-    static final String CH = "gymer_run2"; // v2: importanza normale (le notifiche "silenziose" spesso sono nascoste dalla schermata di blocco)
+    // v3: IMPORTANCE_HIGH senza suono -> forza One UI a tenere la scheda aperta in schermata di blocco
+    static final String CH = "gymer_run3";
     static final String ACT = "it.gymer.app.act.";
 
     private final Handler h = new Handler(Looper.getMainLooper());
     private WindowManager wm;
     private MediaSession ms;
+    private long lastLiveSec = -1;
 
     // bolla
     private LinearLayout bubbleView;
@@ -70,6 +72,17 @@ public class TimerService extends Service {
                 return;
             }
             updateBubble();
+            // Aggiorna la pillola Live / Now Bar ogni secondo quando lo stile Live (1) è attivo
+            if (nstyle() == 1 && TimerState.run) {
+                long sec = (TimerState.remaining() + 999) / 1000;
+                if (sec != lastLiveSec) {
+                    lastLiveSec = sec;
+                    try {
+                        NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                        nm.notify(TimerState.ID_RUN, buildLive());
+                    } catch (Throwable ignored) {}
+                }
+            }
             h.postDelayed(this, 250);
         }
     };
@@ -89,6 +102,7 @@ public class TimerService extends Service {
         TimerState.load(this);
         String a = intent != null ? intent.getAction() : null;
         if (a != null && a.startsWith(ACT)) TimerState.act(this, a.substring(ACT.length()));
+        lastLiveSec = -1;
         startFg(); // sempre: chi ci avvia con startForegroundService si aspetta la notifica subito
         if (!TimerState.active()) {
             removeBubble();
@@ -118,10 +132,12 @@ public class TimerService extends Service {
         if (Build.VERSION.SDK_INT >= 26) {
             NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             try { nm.deleteNotificationChannel("gymer_run"); } catch (Exception ignored) {}
-            NotificationChannel ch = new NotificationChannel(CH, "Timer in corso", NotificationManager.IMPORTANCE_DEFAULT);
-            ch.setDescription("Mostra il recupero in corso, anche nella schermata di blocco (senza suono)");
+            try { nm.deleteNotificationChannel("gymer_run2"); } catch (Exception ignored) {}
+            NotificationChannel ch = new NotificationChannel(CH, "Timer in corso", NotificationManager.IMPORTANCE_HIGH);
+            ch.setDescription("Mostra il timer di recupero espanso nella schermata di blocco e Now Bar (silenzioso)");
             ch.setSound(null, null);
             ch.enableVibration(false);
+            ch.enableLights(false);
             ch.setShowBadge(false);
             ch.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
             nm.createNotificationChannel(ch);
@@ -146,7 +162,7 @@ public class TimerService extends Service {
     }
 
     private String endText() {
-        return "Finisce alle " + new SimpleDateFormat("HH:mm:ss", Locale.ITALY).format(new Date(TimerState.end));
+        return "Fine alle " + new SimpleDateFormat("HH:mm:ss", Locale.ITALY).format(new Date(TimerState.end));
     }
 
     /** Notifica classica con tre pulsanti di testo. */
@@ -159,7 +175,7 @@ public class TimerService extends Service {
                 .setOnlyAlertOnce(true)
                 .setSilent(true)
                 .setCategory("stopwatch")
-                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
                 .setContentIntent(openPi());
@@ -193,7 +209,7 @@ public class TimerService extends Service {
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
                 .setColor(c1())
                 .setContentIntent(openPi());
-        if (Build.VERSION.SDK_INT < 26) b.setPriority(Notification.PRIORITY_LOW);
+        if (Build.VERSION.SDK_INT < 26) b.setPriority(Notification.PRIORITY_HIGH);
         if (run) {
             b.setWhen(TimerState.end).setShowWhen(true).setUsesChronometer(true);
             if (Build.VERSION.SDK_INT >= 24) b.setChronometerCountDown(true);
@@ -235,7 +251,7 @@ public class TimerService extends Service {
         b.addAction(new Notification.Action.Builder(0, "+30s", actionPi("add", 12)).build());
     }
 
-    /** Riquadro: icona clessidra + tempo grande che scorre da solo + Annulla / Pausa / +30s. */
+    /** Riquadro stile Orologio Samsung: clessidra + cronometro grande + Annulla / Pausa / +30s sempre espanso. */
     private Notification buildCustom() {
         int lay = rid("gymer_notif", "layout"), idT = rid("gn_time", "id"), idSub = rid("gn_sub", "id");
         if (Build.VERSION.SDK_INT < 24 || lay == 0 || idT == 0 || idSub == 0) return buildClassic();
@@ -244,34 +260,41 @@ public class TimerService extends Service {
         RemoteViews rv = new RemoteViews(getPackageName(), lay);
         rv.setChronometerCountDown(idT, true);
         rv.setChronometer(idT, SystemClock.elapsedRealtime() + rem, null, run);
-        rv.setTextViewText(idSub, run ? "Recupero / " + new SimpleDateFormat("HH:mm", Locale.ITALY).format(new Date(TimerState.end)) : "Recupero in pausa");
+        rv.setTextViewText(idSub, run
+                ? "Recupero · " + new SimpleDateFormat("HH:mm", Locale.ITALY).format(new Date(TimerState.end))
+                : "Recupero in pausa");
         Notification.Builder b = baseBuilder();
         b.setSmallIcon(smallIcon())
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
                 .setShowWhen(false)
-                .setCategory(Notification.CATEGORY_PROGRESS)
+                .setCategory("stopwatch")
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
                 .setColor(c1())
                 .setCustomContentView(rv)
+                .setCustomBigContentView(rv)
                 .setStyle(new Notification.DecoratedCustomViewStyle())
                 .setContentIntent(openPi());
-        if (Build.VERSION.SDK_INT < 26) b.setPriority(Notification.PRIORITY_LOW);
+        if (Build.VERSION.SDK_INT >= 26) b.setColorized(true);
+        if (Build.VERSION.SDK_INT < 26) b.setPriority(Notification.PRIORITY_HIGH);
         if (Build.VERSION.SDK_INT >= 31) b.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE);
         addTimerActions(b);
         return b.build();
     }
 
-    /** Live (Android 16 / One UI 8): notifica standard "promossa" -> pillola nella barra di stato e Now Bar. */
+    /** Live (Android 16 / One UI 8): pillola nella barra di stato e scheda nella Now Bar in schermata di blocco. */
     private Notification buildLive() {
         boolean run = TimerState.run;
+        long rem = TimerState.remaining();
+        String shortTxt = fmt(rem);
         Notification.Builder b = baseBuilder();
         b.setSmallIcon(smallIcon())
-                .setContentTitle(run ? "Recupero in corso" : "Recupero in pausa")
-                .setContentText(run ? endText() : fmt(TimerState.left) + " rimanenti")
+                .setSubText("Recupero")
+                .setContentTitle(run ? "Recupero · " + shortTxt : "Recupero in pausa")
+                .setContentText(run ? endText() : shortTxt + " rimanenti")
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
-                .setCategory(Notification.CATEGORY_PROGRESS)
+                .setCategory("stopwatch")
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
                 .setColor(c1())
                 .setContentIntent(openPi());
@@ -281,11 +304,15 @@ public class TimerService extends Service {
         } else {
             b.setShowWhen(false);
         }
-        if (Build.VERSION.SDK_INT < 26) b.setPriority(Notification.PRIORITY_LOW);
+        if (Build.VERSION.SDK_INT < 26) b.setPriority(Notification.PRIORITY_HIGH);
         if (Build.VERSION.SDK_INT >= 31) b.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE);
         addTimerActions(b);
-        try { // API 36: richiesta di promozione a "live update" (si chiama per riflessione, cosi' compila anche con SDK 35)
+        // API 36 (Android 16 / One UI 8): requisiti completi per promozione a Live Update / Now Bar
+        try {
             Notification.Builder.class.getMethod("setRequestPromotedOngoing", boolean.class).invoke(b, true);
+        } catch (Throwable ignored) {}
+        try {
+            Notification.Builder.class.getMethod("setShortCriticalText", CharSequence.class).invoke(b, shortTxt);
         } catch (Throwable ignored) {}
         return b.build();
     }
@@ -297,7 +324,7 @@ public class TimerService extends Service {
     }
 
     private void startFg() {
-        ensureChannel(); // senza canale valido Android chiude l'app (notifica del servizio non valida)
+        ensureChannel();
         Notification n = null;
         try {
             if (media() && TimerState.active()) {
