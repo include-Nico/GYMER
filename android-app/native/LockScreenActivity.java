@@ -35,7 +35,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
-import android.view.animation.LinearInterpolator;
+import android.view.animation.OvershootInterpolator;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -46,8 +46,8 @@ import java.util.Locale;
 
 /**
  * Esperienza nativa lockscreen GYMER:
- * - Modalita' "run": card glassmorphism con glow dinamico, anello neon con puntino luminoso, pillola orario e swipe-to-dismiss.
- * - Modalita' "done": risveglio schermo con onde sonar pulsanti, card hero "0:00" e slider magnetico 'X' per spegnere.
+ * - Modalita' "run": card glassmorphism con glow dinamico, anello neon con puntino luminoso e swipe-to-dismiss.
+ * - Modalita' "done": risveglio schermo OLED minimale con controllo 'X' centrato al millimetro.
  */
 public class LockScreenActivity extends Activity {
     private final Handler h = new Handler(Looper.getMainLooper());
@@ -62,7 +62,6 @@ public class LockScreenActivity extends Activity {
     private LinearLayout card;
 
     // UI Done
-    private PulseHaloView pulseHalo;
     private Ringtone alarmRingtone;
     private Vibrator vibrator;
     private PowerManager.WakeLock wakeLock;
@@ -84,12 +83,8 @@ public class LockScreenActivity extends Activity {
 
     private final Runnable autoStopDone = this::finishDone;
 
-    private float dpf(float v) {
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, v, getResources().getDisplayMetrics());
-    }
-
     private int dp(float v) {
-        return (int) dpf(v);
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, v, getResources().getDisplayMetrics());
     }
 
     private int themeC1() {
@@ -174,12 +169,10 @@ public class LockScreenActivity extends Activity {
         root.setBackgroundColor(0xF206060C);
         root.setOnClickListener(v -> finish());
 
-        // Sfondo con alone ambientale morbido
         ambientRun = new AmbientBgView(this, c1, c2);
         root.addView(ambientRun, new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
 
-        // Card principale glassmorphism
         card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
         card.setGravity(Gravity.CENTER_HORIZONTAL);
@@ -195,7 +188,6 @@ public class LockScreenActivity extends Activity {
         card.setBackground(cardBg);
         card.setClickable(true);
 
-        // Maniglia superiore stile sheet iOS/One UI
         View handle = new View(this);
         GradientDrawable handleBg = new GradientDrawable();
         handleBg.setColor(0x38FFFFFF);
@@ -204,11 +196,6 @@ public class LockScreenActivity extends Activity {
         LinearLayout.LayoutParams hLp = new LinearLayout.LayoutParams(dp(38), dp(4));
         hLp.bottomMargin = dp(16);
         card.addView(handle, hLp);
-
-        // Header pillola brand + stato
-        LinearLayout topRow = new LinearLayout(this);
-        topRow.setOrientation(LinearLayout.HORIZONTAL);
-        topRow.setGravity(Gravity.CENTER);
 
         statusPill = new TextView(this);
         statusPill.setText("●  RECUPERO ATTIVO");
@@ -222,17 +209,14 @@ public class LockScreenActivity extends Activity {
         pillBg.setCornerRadius(dp(20));
         pillBg.setStroke(dp(1), withAlpha(c2, 75));
         statusPill.setBackground(pillBg);
-        topRow.addView(statusPill);
-        card.addView(topRow);
+        card.addView(statusPill);
 
-        // Anello Hero centrale
         heroRing = new HeroRingView(this);
         LinearLayout.LayoutParams rlp = new LinearLayout.LayoutParams(dp(210), dp(210));
         rlp.topMargin = dp(20);
         rlp.bottomMargin = dp(14);
         card.addView(heroRing, rlp);
 
-        // Pillola orario di fine stimato
         endPill = new TextView(this);
         endPill.setTextColor(0xCCFFFFFF);
         endPill.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
@@ -244,7 +228,6 @@ public class LockScreenActivity extends Activity {
         endPill.setBackground(endBg);
         card.addView(endPill);
 
-        // Pulsanti azione moderni (Stop | Pausa/Play | +30s)
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER);
@@ -266,7 +249,6 @@ public class LockScreenActivity extends Activity {
         row.addView(bAdd, pSide);
         card.addView(row, rowLp);
 
-        // Swipe omnidirezionale per chiudere la card
         card.setOnTouchListener(new View.OnTouchListener() {
             float downX, downY;
             boolean dragging = false;
@@ -335,7 +317,6 @@ public class LockScreenActivity extends Activity {
         root.addView(card, clp);
         setContentView(root);
 
-        // Animazione ingresso fluida
         card.setScaleX(0.93f);
         card.setScaleY(0.93f);
         card.setAlpha(0f);
@@ -359,103 +340,272 @@ public class LockScreenActivity extends Activity {
     }
 
     // =====================================================================
-    // UI 2: Fine timer a schermo nero/bloccato (Sonar + Card Hero + X Magnetica)
+    // UI 2: Fine timer a schermo nero (Design OLED ultra-pulito e centrato)
     // =====================================================================
     private void buildDoneUi() {
         int c1 = themeC1();
         int c2 = themeC2();
 
-        FrameLayout root = new FrameLayout(this);
-        root.setBackgroundColor(0xFF05050A);
+        // Unica vista canvas a tutto schermo: testata elegante + anello e 'X' perfettamente coassiali
+        DoneFullScreenView doneView = new DoneFullScreenView(this, c1, c2, this::finishDone);
+        setContentView(doneView);
+    }
 
-        // Sfondo sonar pulsante
-        pulseHalo = new PulseHaloView(this, c1, c2);
-        root.addView(pulseHalo, new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+    /**
+     * Schermata intera di fine timer disegnata su un unico Canvas:
+     * ogni bagliore, onda, anello e pulsante X condivide esattamente lo stesso centro matematico.
+     */
+    static class DoneFullScreenView extends View {
+        final Paint glowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        final Paint wavePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        final Paint pillBgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        final Paint pillBorderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        final Paint brandPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        final Paint timePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        final Paint subPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        final Paint hintPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-        LinearLayout content = new LinearLayout(this);
-        content.setOrientation(LinearLayout.VERTICAL);
-        content.setGravity(Gravity.CENTER_HORIZONTAL);
-        content.setPadding(dp(22), dp(54), dp(22), dp(42));
+        final Paint targetTrackPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        final Paint targetFillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        final Paint progressArcPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        final Paint btnFillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        final Paint btnBorderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        final Paint xPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-        // Card superiore effetto glass
-        LinearLayout notifBanner = new LinearLayout(this);
-        notifBanner.setOrientation(LinearLayout.VERTICAL);
-        notifBanner.setGravity(Gravity.CENTER);
-        notifBanner.setPadding(dp(24), dp(24), dp(24), dp(26));
-        notifBanner.setElevation(dp(16));
+        final RectF pillRect = new RectF();
+        final RectF arcRect = new RectF();
+        final float d;
+        final int c1, c2;
+        final Runnable onDismiss;
 
-        GradientDrawable bannerBg = new GradientDrawable(
-                GradientDrawable.Orientation.TOP_BOTTOM,
-                new int[]{0xEB18182C, 0xF50E0E1A}
-        );
-        bannerBg.setCornerRadius(dp(32));
-        bannerBg.setStroke(dp(1), withAlpha(c2, 95));
-        notifBanner.setBackground(bannerBg);
+        float offX = 0f, offY = 0f;
+        boolean dragging = false;
+        float breathe = 0f;
+        ValueAnimator breatheAnim;
+        ValueAnimator snapAnim;
 
-        TextView badge = new TextView(this);
-        badge.setText("⚡  GYMER · RECUPERO COMPLETATO");
-        badge.setTextColor(c2);
-        badge.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
-        badge.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
-        badge.setLetterSpacing(0.11f);
-        badge.setPadding(dp(14), dp(6), dp(14), dp(6));
-        GradientDrawable badgeBg = new GradientDrawable();
-        badgeBg.setColor(withAlpha(c1, 42));
-        badgeBg.setCornerRadius(dp(20));
-        badge.setBackground(badgeBg);
-        notifBanner.addView(badge);
+        DoneFullScreenView(Context c, int c1, int c2, Runnable onDismiss) {
+            super(c);
+            this.c1 = c1;
+            this.c2 = c2;
+            this.onDismiss = onDismiss;
+            d = c.getResources().getDisplayMetrics().density;
 
-        TextView bigZero = new TextView(this);
-        bigZero.setText("0:00");
-        bigZero.setTextColor(Color.WHITE);
-        bigZero.setTextSize(TypedValue.COMPLEX_UNIT_SP, 62);
-        bigZero.setTypeface(Typeface.create("sans-serif-light", Typeface.BOLD));
-        bigZero.setLetterSpacing(-0.02f);
-        LinearLayout.LayoutParams zlp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        zlp.topMargin = dp(10);
-        zlp.bottomMargin = dp(2);
-        notifBanner.addView(bigZero, zlp);
+            wavePaint.setStyle(Paint.Style.STROKE);
+            wavePaint.setStrokeWidth(1.5f * d);
 
-        TextView msg = new TextView(this);
-        msg.setText("Pronto per la prossima serie!");
-        msg.setTextColor(0xD9FFFFFF);
-        msg.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-        msg.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-        notifBanner.addView(msg);
+            pillBgPaint.setStyle(Paint.Style.FILL);
+            pillBgPaint.setColor(withAlpha(c1, 34));
 
-        content.addView(notifBanner, new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            pillBorderPaint.setStyle(Paint.Style.STROKE);
+            pillBorderPaint.setStrokeWidth(1f * d);
+            pillBorderPaint.setColor(withAlpha(c2, 90));
 
-        // Spazio flessibile centrale
-        content.addView(new View(this), new LinearLayout.LayoutParams(1, 0, 1f));
+            brandPaint.setColor(c2);
+            brandPaint.setTextAlign(Paint.Align.CENTER);
+            brandPaint.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
+            brandPaint.setTextSize(11.5f * d);
+            brandPaint.setLetterSpacing(0.16f);
 
-        // Controllo 'X' magnetico con scia luminosa e tacche direzionali
-        DragDismissX dragX = new DragDismissX(this, c1, c2, this::finishDone);
-        content.addView(dragX, new LinearLayout.LayoutParams(dp(240), dp(240)));
+            timePaint.setColor(Color.WHITE);
+            timePaint.setTextAlign(Paint.Align.CENTER);
+            timePaint.setTypeface(Typeface.create("sans-serif-thin", Typeface.NORMAL));
+            timePaint.setTextSize(78f * d);
+            timePaint.setLetterSpacing(-0.02f);
 
-        TextView hint = new TextView(this);
-        hint.setText("TRASCINA LA X FUORI DAL CERCHIO");
-        hint.setTextColor(0x73FFFFFF);
-        hint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
-        hint.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
-        hint.setLetterSpacing(0.12f);
-        LinearLayout.LayoutParams hlp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        hlp.topMargin = dp(6);
-        content.addView(hint, hlp);
+            subPaint.setColor(0xB8FFFFFF);
+            subPaint.setTextAlign(Paint.Align.CENTER);
+            subPaint.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
+            subPaint.setTextSize(16f * d);
 
-        root.addView(content, new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
-        setContentView(root);
+            hintPaint.setColor(0x59FFFFFF);
+            hintPaint.setTextAlign(Paint.Align.CENTER);
+            hintPaint.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
+            hintPaint.setTextSize(11f * d);
+            hintPaint.setLetterSpacing(0.14f);
+
+            targetTrackPaint.setStyle(Paint.Style.STROKE);
+            targetTrackPaint.setStrokeWidth(1.5f * d);
+            targetTrackPaint.setColor(0x26FFFFFF);
+
+            targetFillPaint.setStyle(Paint.Style.FILL);
+            targetFillPaint.setColor(0x0AFFFFFF);
+
+            progressArcPaint.setStyle(Paint.Style.STROKE);
+            progressArcPaint.setStrokeWidth(3.5f * d);
+            progressArcPaint.setStrokeCap(Paint.Cap.ROUND);
+
+            btnFillPaint.setStyle(Paint.Style.FILL);
+            btnBorderPaint.setStyle(Paint.Style.STROKE);
+            btnBorderPaint.setStrokeWidth(1.5f * d);
+
+            xPaint.setStyle(Paint.Style.STROKE);
+            xPaint.setStrokeWidth(3.2f * d);
+            xPaint.setStrokeCap(Paint.Cap.ROUND);
+            xPaint.setColor(Color.WHITE);
+        }
+
+        @Override
+        protected void onAttachedToWindow() {
+            super.onAttachedToWindow();
+            breatheAnim = ValueAnimator.ofFloat(0f, 1f);
+            breatheAnim.setDuration(2000);
+            breatheAnim.setRepeatCount(ValueAnimator.INFINITE);
+            breatheAnim.setRepeatMode(ValueAnimator.REVERSE);
+            breatheAnim.setInterpolator(new DecelerateInterpolator());
+            breatheAnim.addUpdateListener(a -> {
+                breathe = (Float) a.getAnimatedValue();
+                invalidate();
+            });
+            breatheAnim.start();
+        }
+
+        @Override
+        protected void onDetachedFromWindow() {
+            if (breatheAnim != null) breatheAnim.cancel();
+            if (snapAnim != null) snapAnim.cancel();
+            super.onDetachedFromWindow();
+        }
+
+        private float ringCenterX() { return getWidth() / 2f; }
+        private float ringCenterY() { return getHeight() * 0.72f; }
+        private float targetRadius() { return 104f * d; }
+        private float buttonRadius() { return 36f * d; }
+
+        @Override
+        protected void onDraw(Canvas c) {
+            float w = getWidth();
+            float h = getHeight();
+            if (w <= 0 || h <= 0) return;
+
+            // 1. Sfondo nero OLED puro
+            c.drawColor(0xFF05050A);
+
+            float cx = ringCenterX();
+            float cy = ringCenterY();
+            float maxR = targetRadius();
+
+            // 2. Bagliore radiale centrato ESATTAMENTE sul bersaglio della X (cx, cy)
+            float glowR = maxR * (2.1f + 0.25f * breathe);
+            glowPaint.setShader(new RadialGradient(cx, cy, glowR,
+                    new int[]{withAlpha(c1, 62), withAlpha(c2, 22), Color.TRANSPARENT},
+                    null, Shader.TileMode.CLAMP));
+            c.drawCircle(cx, cy, glowR, glowPaint);
+
+            // 3. Testata superiore minimale (pillola + 00:00 + sottotitolo)
+            float topY = h * 0.19f;
+            String badgeText = "GYMER  ·  FINE RECUPERO";
+            float badgeW = brandPaint.measureText(badgeText) + 34 * d;
+            float badgeH = 28 * d;
+            pillRect.set(cx - badgeW / 2f, topY - badgeH / 2f, cx + badgeW / 2f, topY + badgeH / 2f);
+            c.drawRoundRect(pillRect, badgeH / 2f, badgeH / 2f, pillBgPaint);
+            c.drawRoundRect(pillRect, badgeH / 2f, badgeH / 2f, pillBorderPaint);
+            c.drawText(badgeText, cx, topY - (brandPaint.ascent() + brandPaint.descent()) / 2f, brandPaint);
+
+            float timeY = topY + 86 * d;
+            c.drawText("00:00", cx, timeY, timePaint);
+            c.drawText("Recupero terminato · Tocca a te", cx, timeY + 32 * d, subPaint);
+
+            // 4. Cerchio bersaglio + onda respiro coassiale (stesso identico cx, cy)
+            float dist = (float) Math.hypot(offX, offY);
+            float progress = Math.min(1f, dist / (maxR * 0.78f));
+
+            c.drawCircle(cx, cy, maxR, targetFillPaint);
+            c.drawCircle(cx, cy, maxR, targetTrackPaint);
+
+            if (!dragging) {
+                float pulseR = maxR + (18f * d * breathe);
+                wavePaint.setColor(withAlpha(c2, (int) ((1f - breathe) * 75)));
+                c.drawCircle(cx, cy, pulseR, wavePaint);
+            }
+
+            // Arco progressivo che si riempie mentre trascini la X verso il bordo
+            if (progress > 0.02f) {
+                arcRect.set(cx - maxR, cy - maxR, cx + maxR, cy + maxR);
+                progressArcPaint.setShader(new SweepGradient(cx, cy, new int[]{c1, c2, 0xFFFF4D6D, c1}, null));
+                c.drawArc(arcRect, -90f, 360f * progress, false, progressArcPaint);
+            }
+
+            // 5. Pulsante centrale 'X'
+            float bx = cx + offX;
+            float by = cy + offY;
+            float btnR = buttonRadius() + (dragging ? 3f * d : 0f);
+
+            if (dragging) {
+                btnFillPaint.setShader(new LinearGradient(bx - btnR, by - btnR, bx + btnR, by + btnR,
+                        0xFFFF4D6D, 0xFFFF7A59, Shader.TileMode.CLAMP));
+                btnBorderPaint.setColor(0x99FFFFFF);
+            } else {
+                btnFillPaint.setShader(new LinearGradient(bx - btnR, by - btnR, bx + btnR, by + btnR,
+                        0xFF1E1E30, 0xFF131320, Shader.TileMode.CLAMP));
+                btnBorderPaint.setColor(0x4DFFFFFF);
+            }
+
+            c.drawCircle(bx, by, btnR, btnFillPaint);
+            c.drawCircle(bx, by, btnR, btnBorderPaint);
+
+            float arm = 11f * d;
+            c.drawLine(bx - arm, by - arm, bx + arm, by + arm, xPaint);
+            c.drawLine(bx + arm, by - arm, bx - arm, by + arm, xPaint);
+
+            // 6. Testo guida sotto il cerchio
+            c.drawText("TRASCINA LA X PER CHIUDERE", cx, cy + maxR + 34 * d, hintPaint);
+        }
+
+        @Override
+        public boolean onTouchEvent(MotionEvent e) {
+            float cx = ringCenterX();
+            float cy = ringCenterY();
+            float maxR = targetRadius();
+            float hitR = buttonRadius() * 1.55f;
+
+            switch (e.getActionMasked()) {
+                case MotionEvent.ACTION_DOWN:
+                    if (Math.hypot(e.getX() - cx, e.getY() - cy) <= hitR) {
+                        if (snapAnim != null) snapAnim.cancel();
+                        dragging = true;
+                        offX = 0f;
+                        offY = 0f;
+                        invalidate();
+                        return true;
+                    }
+                    return false;
+                case MotionEvent.ACTION_MOVE:
+                    if (!dragging) return false;
+                    offX = e.getX() - cx;
+                    offY = e.getY() - cy;
+                    invalidate();
+                    return true;
+                case MotionEvent.ACTION_UP:
+                case MotionEvent.ACTION_CANCEL:
+                    if (!dragging) return false;
+                    dragging = false;
+                    if (Math.hypot(offX, offY) >= maxR * 0.78f) {
+                        onDismiss.run();
+                    } else {
+                        final float startX = offX;
+                        final float startY = offY;
+                        snapAnim = ValueAnimator.ofFloat(1f, 0f);
+                        snapAnim.setDuration(220);
+                        snapAnim.setInterpolator(new OvershootInterpolator(1.2f));
+                        snapAnim.addUpdateListener(a -> {
+                            float f = (Float) a.getAnimatedValue();
+                            offX = startX * f;
+                            offY = startY * f;
+                            invalidate();
+                        });
+                        snapAnim.start();
+                    }
+                    return true;
+            }
+            return false;
+        }
     }
 
     // =====================================================================
-    // Componenti Grafici Custom (Canvas)
+    // Componenti Grafici Custom (Run UI)
     // =====================================================================
 
-    /** Sfondo ambientale con doppia luce radiale sfumata ai colori del tema. */
     static class AmbientBgView extends View {
         final Paint p1 = new Paint(Paint.ANTI_ALIAS_FLAG);
         final Paint p2 = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -488,63 +638,6 @@ public class LockScreenActivity extends Activity {
         }
     }
 
-    /** Onde sonar concentriche animate a fine timer. */
-    static class PulseHaloView extends View {
-        final Paint ringPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        final Paint glowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        final int c1, c2;
-        float phase = 0f;
-        ValueAnimator anim;
-
-        PulseHaloView(Context c, int c1, int c2) {
-            super(c);
-            this.c1 = c1;
-            this.c2 = c2;
-            ringPaint.setStyle(Paint.Style.STROKE);
-            ringPaint.setStrokeWidth(2.5f * c.getResources().getDisplayMetrics().density);
-        }
-
-        @Override
-        protected void onAttachedToWindow() {
-            super.onAttachedToWindow();
-            anim = ValueAnimator.ofFloat(0f, 1f);
-            anim.setDuration(2400);
-            anim.setRepeatCount(ValueAnimator.INFINITE);
-            anim.setInterpolator(new LinearInterpolator());
-            anim.addUpdateListener(a -> {
-                phase = (Float) a.getAnimatedValue();
-                invalidate();
-            });
-            anim.start();
-        }
-
-        @Override
-        protected void onDetachedFromWindow() {
-            if (anim != null) anim.cancel();
-            super.onDetachedFromWindow();
-        }
-
-        @Override
-        protected void onDraw(Canvas c) {
-            float cx = getWidth() / 2f;
-            float cy = getHeight() * 0.70f;
-            float maxR = Math.max(getWidth(), getHeight()) * 0.55f;
-
-            glowPaint.setShader(new RadialGradient(cx, cy, maxR * 0.85f,
-                    new int[]{withAlpha(c1, 75), withAlpha(c2, 24), Color.TRANSPARENT}, null, Shader.TileMode.CLAMP));
-            c.drawCircle(cx, cy, maxR * 0.85f, glowPaint);
-
-            for (int i = 0; i < 3; i++) {
-                float p = (phase + i / 3f) % 1f;
-                float r = maxR * (0.15f + 0.85f * p);
-                int alpha = (int) ((1f - p) * 110);
-                ringPaint.setColor(withAlpha(i % 2 == 0 ? c2 : c1, alpha));
-                c.drawCircle(cx, cy, r, ringPaint);
-            }
-        }
-    }
-
-    /** Anello countdown ad alta risoluzione con glow, tacche e puntino luminoso in testa. */
     static class HeroRingView extends View {
         final Paint track = new Paint(Paint.ANTI_ALIAS_FLAG);
         final Paint glow = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -622,7 +715,6 @@ public class LockScreenActivity extends Activity {
                 c.drawArc(r, 0f, 360f * frac, false, arc);
                 c.restore();
 
-                // Puntino bianco luminoso sulla punta dell'arco
                 double angleRad = Math.toRadians(-90.0 + 360.0 * frac);
                 float tx = (float) (cx + radius * Math.cos(angleRad));
                 float ty = (float) (cy + radius * Math.sin(angleRad));
@@ -635,7 +727,6 @@ public class LockScreenActivity extends Activity {
         }
     }
 
-    /** Pulsante circolare con gradiente, bordo luminoso e feedback tattile alla pressione. */
     static class ModernActionBtn extends View {
         static final int PLAY = 0, PAUSE = 1, ADD = 2, STOP = 3;
         final Paint bg = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -733,137 +824,6 @@ public class LockScreenActivity extends Activity {
                     c.drawText("+30s", m, m - (fg.ascent() + fg.descent()) / 2f, fg);
                     break;
             }
-        }
-    }
-
-    /** Controllo 'X' magnetico: si illumina e ingrandisce man mano che lo trascini verso il bordo. */
-    static class DragDismissX extends View {
-        final Paint outerTrack = new Paint(Paint.ANTI_ALIAS_FLAG);
-        final Paint outerProgress = new Paint(Paint.ANTI_ALIAS_FLAG);
-        final Paint innerFill = new Paint(Paint.ANTI_ALIAS_FLAG);
-        final Paint innerBorder = new Paint(Paint.ANTI_ALIAS_FLAG);
-        final Paint xStroke = new Paint(Paint.ANTI_ALIAS_FLAG);
-        final Paint chevronPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        final float d;
-        final int c1, c2;
-        final Runnable onDismiss;
-        float offX = 0f, offY = 0f;
-        boolean activeDrag = false;
-
-        DragDismissX(Context c, int c1, int c2, Runnable onDismiss) {
-            super(c);
-            this.c1 = c1;
-            this.c2 = c2;
-            this.onDismiss = onDismiss;
-            d = c.getResources().getDisplayMetrics().density;
-
-            outerTrack.setStyle(Paint.Style.STROKE);
-            outerTrack.setStrokeWidth(2 * d);
-            outerTrack.setColor(0x2EFFFFFF);
-
-            outerProgress.setStyle(Paint.Style.STROKE);
-            outerProgress.setStrokeWidth(3.5f * d);
-            outerProgress.setStrokeCap(Paint.Cap.ROUND);
-
-            innerFill.setStyle(Paint.Style.FILL);
-            innerBorder.setStyle(Paint.Style.STROKE);
-            innerBorder.setStrokeWidth(1.5f * d);
-
-            xStroke.setStyle(Paint.Style.STROKE);
-            xStroke.setStrokeWidth(3.8f * d);
-            xStroke.setStrokeCap(Paint.Cap.ROUND);
-            xStroke.setColor(Color.WHITE);
-
-            chevronPaint.setStyle(Paint.Style.FILL);
-            chevronPaint.setColor(0x55FFFFFF);
-        }
-
-        @Override
-        protected void onDraw(Canvas c) {
-            float cx = getWidth() / 2f;
-            float cy = getHeight() / 2f;
-            float maxR = Math.min(cx, cy) - 10 * d;
-            float baseBtnR = 38 * d;
-
-            float dist = (float) Math.hypot(offX, offY);
-            float progress = Math.min(1f, dist / (maxR * 0.72f));
-
-            // Cerchio bersaglio esterno
-            c.drawCircle(cx, cy, maxR, outerTrack);
-            if (progress > 0.02f) {
-                outerProgress.setShader(new SweepGradient(cx, cy, new int[]{c1, c2, 0xFFFF4D6D, c1}, null));
-                c.drawArc(new RectF(cx - maxR, cy - maxR, cx + maxR, cy + maxR), -90f, 360f * progress, false, outerProgress);
-            }
-
-            // 4 piccoli punti guida cardinali
-            if (!activeDrag) {
-                float guideR = maxR - 14 * d;
-                c.drawCircle(cx, cy - guideR, 2.2f * d, chevronPaint);
-                c.drawCircle(cx, cy + guideR, 2.2f * d, chevronPaint);
-                c.drawCircle(cx - guideR, cy, 2.2f * d, chevronPaint);
-                c.drawCircle(cx + guideR, cy, 2.2f * d, chevronPaint);
-            }
-
-            // Pulsante X centrale trascinabile
-            float bx = cx + offX;
-            float by = cy + offY;
-            float btnR = baseBtnR + (activeDrag ? 4 * d : 0f);
-
-            if (activeDrag) {
-                innerFill.setShader(new LinearGradient(bx - btnR, by - btnR, bx + btnR, by + btnR,
-                        0xFFFF4D6D, 0xFFFF7A59, Shader.TileMode.CLAMP));
-                innerBorder.setColor(0x88FFFFFF);
-            } else {
-                innerFill.setShader(new LinearGradient(bx - btnR, by - btnR, bx + btnR, by + btnR,
-                        0xFF222238, 0xFF161626, Shader.TileMode.CLAMP));
-                innerBorder.setColor(0x44FFFFFF);
-            }
-
-            c.drawCircle(bx, by, btnR, innerFill);
-            c.drawCircle(bx, by, btnR, innerBorder);
-
-            float arm = 12 * d;
-            c.drawLine(bx - arm, by - arm, bx + arm, by + arm, xStroke);
-            c.drawLine(bx + arm, by - arm, bx - arm, by + arm, xStroke);
-        }
-
-        @Override
-        public boolean onTouchEvent(MotionEvent e) {
-            float cx = getWidth() / 2f;
-            float cy = getHeight() / 2f;
-            float maxR = Math.min(cx, cy) - 10 * d;
-            float hitR = 54 * d;
-
-            switch (e.getActionMasked()) {
-                case MotionEvent.ACTION_DOWN:
-                    if (Math.hypot(e.getX() - cx, e.getY() - cy) <= hitR) {
-                        activeDrag = true;
-                        offX = 0f;
-                        offY = 0f;
-                        invalidate();
-                        return true;
-                    }
-                    return false;
-                case MotionEvent.ACTION_MOVE:
-                    if (!activeDrag) return false;
-                    offX = e.getX() - cx;
-                    offY = e.getY() - cy;
-                    invalidate();
-                    return true;
-                case MotionEvent.ACTION_UP:
-                case MotionEvent.ACTION_CANCEL:
-                    if (!activeDrag) return false;
-                    activeDrag = false;
-                    if (Math.hypot(offX, offY) >= maxR * 0.72f) {
-                        onDismiss.run();
-                    } else {
-                        offX = 0f;
-                        offY = 0f;
-                        invalidate();
-                    }
-                    return true;
-            }
-            return false;
         }
     }
 
