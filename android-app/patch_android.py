@@ -21,7 +21,7 @@ for root, _, files in os.walk(os.path.join(APP, "java")):
         if f == "MainActivity.java" and os.path.abspath(root) != os.path.abspath(PKG_DIR):
             os.remove(full)
 
-# 2) manifest: permessi, servizio, receiver
+# 2) manifest: permessi, activity lockscreen, servizio, receiver
 mf = os.path.join(APP, "AndroidManifest.xml")
 x = open(mf, encoding="utf-8").read()
 perms = [
@@ -39,6 +39,13 @@ if add:
     x = x.replace("</manifest>", "    " + add + "\n</manifest>")
 
 comp = '''
+        <activity
+            android:name=".LockScreenActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTop"
+            android:showOnLockScreen="true"
+            android:taskAffinity="" />
         <service
             android:name=".TimerService"
             android:exported="false"
