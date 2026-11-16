@@ -27,6 +27,8 @@ x = open(mf, encoding="utf-8").read()
 perms = [
     '<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />',
     '<uses-permission android:name="android.permission.VIBRATE" />',
+    '<uses-permission android:name="android.permission.WAKE_LOCK" />',
+    '<uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />',
     '<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />',
     '<uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />',
     '<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />',
@@ -45,6 +47,7 @@ comp = '''
             android:excludeFromRecents="true"
             android:launchMode="singleTop"
             android:showOnLockScreen="true"
+            android:turnScreenOn="true"
             android:taskAffinity="" />
         <service
             android:name=".TimerService"
