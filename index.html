@@ -95,6 +95,22 @@ label{font-size:12px;color:var(--mu);display:block;margin-bottom:5px;text-align:
 .sw{width:38px;height:38px;border-radius:50%;border:2px solid var(--gbd);cursor:pointer;padding:0;box-shadow:inset 0 1px 2px rgba(255,255,255,.55);transition:transform .2s}
 .sw.sel{transform:scale(1.15);outline:3px solid var(--tx);outline-offset:2px}
 
+/* Selettore a tendina per Progressi */
+.dd-trigger{width:100%;justify-content:space-between;padding:13px 16px;border-radius:22px;margin-bottom:10px;text-align:left}
+.dd-trigger .cv{transition:transform .35s cubic-bezier(.3,1.3,.5,1)}
+.dd-trigger.open .cv{transform:rotate(180deg)}
+.dd-panel{padding:14px;margin-bottom:14px;border-radius:24px;animation:in .25s cubic-bezier(.2,.8,.2,1)}
+.dd-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--mu);margin:0 4px 8px}
+.dd-grps{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.dd-grps .gb{padding:8px 12px;font-size:13px;border-radius:14px}
+.dot{width:8px;height:8px;border-radius:50%;flex:none}
+.dd-exs{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;padding-right:2px}
+.dd-exs .gb{width:100%;justify-content:space-between;padding:10px 12px;font-size:14px;border-radius:15px}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.scard{padding:13px 14px;border-radius:18px;display:flex;flex-direction:column;gap:3px}
+.scard b{font-size:17px}
+.delta-badge{font-size:12px;font-weight:700;padding:3px 9px;border-radius:10px;background:color-mix(in srgb,var(--ac2) 18%,transparent);color:var(--ac2)}
+
 #main.xf{opacity:0;transform:translateX(-28px)}#main.xb{opacity:0;transform:translateX(28px)}#main.xt{opacity:0;transform:scale(.97)}
 #main.e>*{animation:rise .55s cubic-bezier(.2,.8,.2,1) both}#main.e.pf>*{--dx:34px}#main.e.pb>*{--dx:-34px}#main.e>*:nth-child(2){animation-delay:0.045s}#main.e>*:nth-child(3){animation-delay:0.090s}#main.e>*:nth-child(4){animation-delay:0.135s}#main.e>*:nth-child(5){animation-delay:0.180s}#main.e>*:nth-child(6){animation-delay:0.225s}#main.e>*:nth-child(7){animation-delay:0.270s}#main.e>*:nth-child(8){animation-delay:0.315s}#main.e>*:nth-child(9){animation-delay:0.360s}
 @keyframes rise{from{opacity:0;transform:translate(var(--dx,0px),16px)}}
@@ -161,7 +177,7 @@ db=db||{groups:Object.keys(SEED).map(n=>({id:uid(),name:n,ex:SEED[n].map(x=>({id
 db.theme=db.theme||"dark";db.metric=db.metric||"k";if(!db.timers||db.timers.length!==3)db.timers=[60,90,180];
 db.prof=db.prof||{h:0,w:[]};db.snd=Object.assign({t:"bip",v:80,vib:600},db.snd||{});
 const save=()=>{try{localStorage.setItem("gymer",JSON.stringify(db))}catch(e){}};
-let tab="train",V={},PE=null,EM=0,DIR="t",RT=0,BUSY=0,OPEN={prof:0,bk:0,det:0},LK={},LIM={s:99,r:999,k:999,m:3600,km:500,lv:99,ph:260,pw:400};
+let tab="train",V={},PE=null,PG=null,POPEN=0,EM=0,DIR="t",RT=0,BUSY=0,OPEN={prof:0,bk:0,det:0},LK={},LIM={s:99,r:999,k:999,m:3600,km:500,lv:99,ph:260,pw:400};
 const G=()=>db.groups.find(g=>g.id===V.g),E=()=>G()&&G().ex.find(e=>e.id===V.e);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fd=t=>new Date(t).toLocaleDateString("it-IT",{day:"2-digit",month:"short"});
@@ -191,7 +207,7 @@ function last(e){const l=e.logs||[];if(!l.length)return null;const k=new Date(l[
 const TY={
  peso:{n:"Pesi",i:"dumbbell",c:"#8b7bff",h:"Serie · rip. · kg",nw:"Nuova serie",sv:"Salva serie",f:[["s","Serie",1,1],["r","Ripetizioni",1,10],["k","Carico (kg)",2.5,20]],req:"r",one:x=>x.k,u:" kg",fmt:x=>x.r+" × "+x.k+" kg",
   M:[["k","Carico max",L=>Math.max(...L.map(x=>x.k)),"Carico massimo (kg)"],["e","1RM stimato",L=>+Math.max(0,...L.map(e1)).toFixed(1),"1RM stimato (kg)"],["v","Volume",L=>L.reduce((a,x)=>a+x.r*x.k,0),"Volume (kg × rip.)"]],
-  tot:["Volume totale sollevato",L=>Math.round(L.reduce((a,x)=>a+x.r*x.k,0)).toLocaleString("it-IT")+" kg"]},
+  tot:["Volume totale",L=>Math.round(L.reduce((a,x)=>a+x.r*x.k,0)).toLocaleString("it-IT")+" kg"]},
  corpo:{n:"Corpo libero",i:"body",c:"#34d399",h:"Serie · rip.",nw:"Nuova serie",sv:"Salva serie",f:[["s","Serie",1,1],["r","Ripetizioni",1,10],["k","Zavorra (kg)",2.5,0]],req:"r",one:x=>x.r,u:" rip",fmt:x=>x.r+" rip"+(x.k?" + "+x.k+" kg":""),
   M:[["r","Rip. max",L=>Math.max(...L.map(x=>x.r)),"Ripetizioni massime"],["t","Rip. totali",L=>L.reduce((a,x)=>a+x.r,0),"Ripetizioni totali"]],
   tot:["Ripetizioni totali",L=>L.reduce((a,x)=>a+x.r,0).toLocaleString("it-IT")]},
@@ -366,17 +382,92 @@ function vTimer(){
  <h2>Tempi rapidi</h2><div class="pr">${db.timers.map(s=>`<button class="gb" data-a="start" data-v="${s}">${lbl(s)}</button>`).join("")}</div>
  <button class="gb" data-a="cust" style="width:100%">${I("clock")} Personalizzato</button></div>`}
 function vProg(){
- const all=[];db.groups.forEach(g=>g.ex.forEach(x=>all.push({g,e:x})));
- if(!all.length)return`<h1><span>Progressioni</span></h1><div class="ex">Aggiungi un esercizio per iniziare</div>`;
- const cur=all.find(x=>x.e.id===PE)||all.find(x=>(x.e.logs||[]).length)||all[0],e=cur.e,t=ty(e),ls=e.logs||[];
- const M=t.M.find(x=>x[0]===db.metric)||t.M[0],pts=series(e,M[0]),pr=ls.length?Math.max(...ls.map(t.one)):0,ses=new Set(ls.map(x=>new Date(x.d).toDateString())).size,l=last(e);
+ const grps=db.groups.filter(g=>g.ex.length>0);
+ if(!grps.length)return`<h1><span>Progressioni</span></h1><div class="ex">Aggiungi un esercizio per iniziare</div>`;
+
+ // Risoluzione esercizio e gruppo attivo
+ let curG=null,curE=null;
+ if(PE){
+  for(const g of grps){const f=g.ex.find(x=>x.id===PE);if(f){curG=g;curE=f;break}}
+ }
+ if(!curE){
+  for(const g of grps){const f=g.ex.find(x=>(x.logs||[]).length);if(f){curG=g;curE=f;break}}
+ }
+ if(!curE){curG=grps[0];curE=curG.ex[0]}
+ PE=curE.id;
+
+ // Gruppo selezionato nella tendina (può differire temporaneamente da curG mentre l'utente sfoglia)
+ const selG=grps.find(g=>g.id===PG)||curG;
+ PG=selG.id;
+ const selGIdx=db.groups.indexOf(selG);
+
+ const t=ty(curE),ls=curE.logs||[];
+ const M=t.M.find(x=>x[0]===db.metric)||t.M[0],pts=series(curE,M[0]);
+ const pr=ls.length?Math.max(...ls.map(t.one)):0;
+ const ses=new Set(ls.map(x=>new Date(x.d).toDateString())).size;
+ const l=last(curE);
+
+ // Delta progresso tra prima e ultima sessione
+ let deltaHtml="";
+ if(pts.length>1){
+  const diff=+(pts[pts.length-1].y-pts[0].y).toFixed(1);
+  if(diff!==0)deltaHtml=`<span class="delta-badge">${diff>0?"+":""}${diff}${t.u}</span>`;
+ }
+
  return`<div class="fillp"><h1><span>Progressioni</span></h1>
- <div class="chips">${all.map(x=>`<button class="gb ${x.e.id===e.id?"on":""}" data-a="pe" data-v="${x.e.id}">${I(ty(x.e).i)}${esc(x.e.name)}</button>`).join("")}</div>
+
+ <!-- Trigger tendina gerarchica -->
+ <button class="gb dd-trigger ${POPEN?"open":""}" data-a="ptog">
+  <span class="dot" style="background:${gcol(curG,db.groups.indexOf(curG))}"></span>
+  <div class="sp" style="min-width:0">
+   <div class="mu" style="font-size:11px;line-height:1.1">${esc(curG.name)}</div>
+   <div style="font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(curE.name)}</div>
+  </div>
+  ${I("chev","cv")}
+ </button>
+
+ <!-- Pannello tendina: prima Fascio Muscolare, poi Esercizio -->
+ ${POPEN?`<div class="g dd-panel">
+  <div class="dd-lbl">1. Fascio muscolare</div>
+  <div class="dd-grps">
+   ${grps.map(g=>{const idx=db.groups.indexOf(g);return`<button class="gb ${g.id===selG.id?"on":""}" data-a="pg" data-v="${g.id}"><span class="dot" style="background:${gcol(g,idx)}"></span>${esc(g.name)}</button>`}).join("")}
+  </div>
+  <div class="dd-lbl">2. Esercizio (${esc(selG.name)})</div>
+  <div class="dd-exs">
+   ${selG.ex.map(x=>{
+    const hasData=(x.logs||[]).length>0;
+    const isSel=x.id===curE.id;
+    return`<button class="gb ${isSel?"on":""}" data-a="pe" data-v="${x.id}">
+     <span class="row" style="gap:8px;min-width:0">${I(ty(x).i)}<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.name)}</span></span>
+     <span class="mu" style="font-size:11px;flex:none">${hasData?x.logs.length+" log":"vuoto"}</span>
+    </button>`;
+   }).join("")}
+  </div>
+ </div>`:""}
+
  <div class="seg" style="margin-bottom:12px">${t.M.map(m=>`<button class="gb ${m[0]===M[0]?"on":""}" data-a="met" data-v="${m[0]}">${m[1]}</button>`).join("")}</div>
- <div class="g cg" style="padding:14px 10px 6px"><div class="mu" style="margin:0 8px 6px">${M[3]} · ${esc(cur.g.name)}</div>${chart(pts)}</div>
- <h2>Statistiche</h2><div class="pr"><div class="g gb" style="border-radius:18px"><b>${pr?+pr.toFixed(1)+t.u:"—"}</b><small>Record</small></div><div class="g gb" style="border-radius:18px"><b>${l?+Math.max(...l.s.map(t.one)).toFixed(1)+t.u:"—"}</b><small>Ultimo</small></div><div class="g gb" style="border-radius:18px"><b>${ses}</b><small>Sessioni</small></div></div>
- <div class="g item row"><span class="mu sp">${t.tot[0]}</span><b>${ls.length?t.tot[1](ls):"—"}</b></div>
- ${(e.t||"peso")==="peso"&&ls.some(x=>e1(x)>0)?`<div class="g item row"><span class="mu sp">1RM stimato (miglior serie)</span><b>${+Math.max(...ls.map(e1)).toFixed(1)} kg</b></div>`:""}${ls.some(x=>x.pr)?`<div class="g item row"><span class="mu sp">Record battuti</span><b>${ls.filter(x=>x.pr).length}</b></div>`:""}${bwv()&&pr&&(e.t||"peso")==="peso"?`<div class="g item row"><span class="mu sp">Record / peso corporeo</span><b>${(pr/bwv()).toFixed(2)}×</b></div>`:""}</div>`}
+
+ <div class="g cg" style="padding:14px 10px 6px">
+  <div class="row" style="margin:0 8px 6px">
+   <span class="mu sp">${M[3]}</span>
+   ${deltaHtml}
+  </div>
+  ${chart(pts)}
+ </div>
+
+ <h2>Riepilogo</h2>
+ <div class="pr">
+  <div class="g gb" style="border-radius:18px"><b>${pr?+pr.toFixed(1)+t.u:"—"}</b><small>Record</small></div>
+  <div class="g gb" style="border-radius:18px"><b>${l?+Math.max(...l.s.map(t.one)).toFixed(1)+t.u:"—"}</b><small>Ultimo</small></div>
+  <div class="g gb" style="border-radius:18px"><b>${ses}</b><small>Sessioni</small></div>
+ </div>
+
+ <div class="sgrid">
+  <div class="g scard"><span class="mu" style="font-size:11px">${t.tot[0]}</span><b>${ls.length?t.tot[1](ls):"—"}</b></div>
+  ${(curE.t||"peso")==="peso"&&ls.some(x=>e1(x)>0)?`<div class="g scard"><span class="mu" style="font-size:11px">1RM stimato</span><b>${+Math.max(...ls.map(e1)).toFixed(1)} kg</b></div>`:""}
+  ${ls.some(x=>x.pr)?`<div class="g scard"><span class="mu" style="font-size:11px">Record battuti</span><b>${ls.filter(x=>x.pr).length}</b></div>`:""}
+  ${bwv()&&pr&&(curE.t||"peso")==="peso"?`<div class="g scard"><span class="mu" style="font-size:11px">Rapporto peso</span><b>${(pr/bwv()).toFixed(2)}× BW</b></div>`:""}
+ </div></div>`}
 function vSet(){const P=db.prof,w=bwv(),bmi=P.h&&w?w/Math.pow(P.h/100,2):0;return`<h1><span>Profilo</span></h1>
  <button class="gb acc ${OPEN.prof?"open":""}" data-a="tg" data-v="prof"><span class="row" style="gap:10px">${I("user")}<b>Dati fisici</b></span><span class="mu sp" style="text-align:right;font-weight:500">${w?w+" kg":"—"} · ${P.h?P.h+" cm":"—"}</span>${I("chev","cv")}</button>
  <div class="col ${OPEN.prof?"open":""}" id="c-prof"><div><div class="g" style="padding:16px;margin-top:12px"><div class="f2"><div><label>Altezza (cm)</label><input id="ph" type="number" inputmode="numeric" value="${P.h||""}" placeholder="175"></div><div><label>Peso (kg)</label><input id="pw" type="number" inputmode="decimal" step="0.1" value="${w||""}" placeholder="70"></div></div><button class="gb on" data-a="prof" style="width:100%">${I("check")} Salva misure</button></div>
@@ -406,7 +497,7 @@ const SLOW={log:1,prof:1,astart:1,aend:1,imp:1,exp:1};
 document.addEventListener("click",ev=>{
  const el=ev.target.closest("[data-a]");if(!el)return;const a=el.dataset.a,v=el.dataset.v,g=G(),e=E();if(a!=="log"&&a!=="same")tap();
  if(SLOW[a]){const n=Date.now();if(n-(LK[a]||0)<900)return;LK[a]=n}
- if(a==="tab"){if(v===tab&&!(v==="train"&&(V.g||V.e)))return;const ni=TABS.findIndex(t=>t[0]===v),oi=TABS.findIndex(t=>t[0]===tab);goto(ni>=oi?"f":"b",()=>{tab=v;EM=0;OPEN.prof=OPEN.bk=OPEN.det=0;if(v==="train")V={}})}
+ if(a==="tab"){if(v===tab&&!(v==="train"&&(V.g||V.e)))return;const ni=TABS.findIndex(t=>t[0]===v),oi=TABS.findIndex(t=>t[0]===tab);goto(ni>=oi?"f":"b",()=>{tab=v;EM=0;POPEN=0;OPEN.prof=OPEN.bk=OPEN.det=0;if(v==="train")V={}})}
  else if(a==="grp")goto("f",()=>{EM=0;V={g:v}});else if(a==="ex")goto("f",()=>{OPEN.det=0;V={g:V.g,e:v}});
  else if(a==="back")goto("b",()=>{EM=0;V=V.e?{g:V.g}:{}});
  else if(a==="addg"){if(db.groups.length>=24)toast("Limite di 24 gruppi raggiunto");else gsheet(null)}else if(a==="eg")gsheet(db.groups.find(x=>x.id===v));
@@ -428,7 +519,10 @@ document.addEventListener("click",ev=>{
   e.logs.push(o);save();if(isPR){toast("Nuovo record! "+(PRL[e.t||"peso"]||PRL.peso)(nv),"trophy");beep("campanello");vib()}else{toast("Salvato");tap([30,40,30])}render(true)}
  else if(a==="same"){const t=ty(e),lx=(e.logs||[])[(e.logs||[]).length-1];if(!lx)return;t.f.forEach(f=>{const i=$("#"+f[0]);if(i&&f[0]!=="s"&&lx[f[0]]!==undefined)i.value=lx[f[0]]});const r=$("#rpe"),n=$("#nt");if(r)r.value=0;if(n)n.value="";const b=$("[data-a=log]");if(b)b.click()}
  else if(a==="dlog")del("Serie eliminata",()=>{e.logs=e.logs.filter(x=>x.d!==+v)});
- else if(a==="pe"){PE=v;render(true)}else if(a==="met"){db.metric=v;save();render(true)}
+ else if(a==="ptog"){POPEN=POPEN?0:1;if(POPEN){const g0=db.groups.find(gr=>gr.ex.some(x=>x.id===PE));if(g0)PG=g0.id}render(true)}
+ else if(a==="pg"){PG=v;render(true)}
+ else if(a==="pe"){PE=v;POPEN=0;render(true)}
+ else if(a==="met"){db.metric=v;save();render(true)}
  else if(a==="th"){db.theme=v;save();render(true)}
  else if(a==="tset")picker("Preset "+(+v+1),db.timers[v],s=>{db.timers[v]=s;save();if(!T.run&&T.left===T.total&&v==0){T.total=T.left=s}render(true)});
  else if(a==="notif"){beep();try{Notification.requestPermission().then(p=>toast(p==="granted"?"Notifiche abilitate":"Notifiche non concesse"))}catch(x){toast("Notifiche non supportate qui")}}
