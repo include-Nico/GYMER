@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Applica a android/ (generato da `cap add android`) il codice nativo di GYMER."""
-import os, re, shutil, subprocess, sys
+import os, re, shutil, sys
+from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 APP = os.path.join(HERE, "android", "app", "src", "main")
@@ -129,13 +130,7 @@ open(os.path.join(dr, "splash.xml"), "w", encoding="utf-8").write('''<layer-list
 </layer-list>
 ''')
 
-# 5) icona dell'app (adattiva + legacy) tramite Pillow
-try:
-    from PIL import Image
-except ImportError:
-    subprocess.run([sys.executable, "-m", "pip", "install", "-q", "Pillow"], check=True)
-    from PIL import Image
-
+# 5) icona dell'app (adattiva + legacy)
 def conv(src, dst, size):
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     with Image.open(src) as im:
@@ -166,7 +161,6 @@ if not flat:
 print("Icona usata (legacy):", flat, "| (adattiva):", fg, "| (mono):", mono)
 
 res = os.path.join(APP, "res")
-# Rimuovi tutte le icone predefinite del template Capacitor per evitare conflitti di risorse
 for root, _, files in os.walk(res):
     for f in files:
         if f.startswith("ic_launcher"):
