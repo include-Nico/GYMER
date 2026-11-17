@@ -80,7 +80,7 @@ label{font-size:12px;color:var(--mu);display:block;margin-bottom:5px;text-align:
 .wh div{height:44px;line-height:44px;text-align:center;font-size:26px;font-weight:700;scroll-snap-align:center;font-variant-numeric:tabular-nums}
 .wu{align-self:center;font-size:14px;font-weight:600;color:var(--mu);width:34px;z-index:1}
 .chips{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 12px;scrollbar-width:none}.chips .gb{white-space:nowrap;padding:9px 14px;font-size:14px}
-.seg{display:flex;gap:8px}.seg .gb{flex:1}
+.seg{display:flex;gap:8px;flex-wrap:wrap}.seg .gb{flex:1 1 130px}
 .flash{animation:pu .7s 3}@keyframes pu{50%{transform:scale(1.04)}}
 .ex{text-align:center;padding:36px 10px;color:var(--mu)}
 .f2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
@@ -96,13 +96,21 @@ label{font-size:12px;color:var(--mu);display:block;margin-bottom:5px;text-align:
 .sw.sel{transform:scale(1.15);outline:3px solid var(--tx);outline-offset:2px}
 .sw-pill{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--gbd);flex:none;box-shadow:inset 0 1px 1px rgba(255,255,255,.5)}
 
-/* Tag serie (Warm-up / Drop set / Superset) */
-.tag-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px}
-.tag-row .gb{padding:9px 4px;font-size:12px;border-radius:13px}
+/* Drop-Up set builder & badges */
 .tbadge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;margin-left:6px;vertical-align:middle;letter-spacing:.03em;text-transform:uppercase}
-.tbadge.tw{background:rgba(251,191,36,.18);color:#fbbf24}
 .tbadge.td{background:rgba(255,95,162,.18);color:#ff5fa2}
-.tbadge.ts{background:color-mix(in srgb,var(--ac2) 20%,transparent);color:var(--ac2)}
+.tbadge.tu{background:rgba(39,215,255,.18);color:#27d7ff}
+.tbadge.tdu{background:rgba(251,191,36,.18);color:#fbbf24}
+.ds-box{background:var(--g2);border:1px solid rgba(255,95,162,.35);border-radius:18px;padding:12px;margin-bottom:10px;animation:in .2s ease}
+.ds-box.up{border-color:rgba(39,215,255,.4)}
+.ds-box.eq{border-color:var(--gbd)}
+.ds-box .step input{font-size:17px;padding:8px 2px;min-width:0}
+.ds-box .step .sm{width:32px;height:32px;padding:6px;border-radius:10px}
+.ds-qpill{padding:4px 8px;border-radius:9px;font-size:11px;font-weight:700}
+.ds-add-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.ds-add{width:100%;border-style:dashed;font-size:12px;padding:10px 8px;gap:5px}
+.ds-add.drop{border-color:rgba(255,95,162,.45)}
+.ds-add.up{border-color:rgba(39,215,255,.45)}
 
 /* Costanza compatta e Calendario apribile in Progressi */
 .cal-card{padding:14px 16px;margin-bottom:12px;overflow:hidden}
@@ -212,7 +220,7 @@ db=db||{groups:Object.keys(SEED).map(n=>({id:uid(),name:n,ex:SEED[n].map(x=>({id
 db.theme=db.theme||"dark";db.metric=db.metric||"k";if(!db.timers||db.timers.length!==3)db.timers=[60,90,180];
 db.prof=db.prof||{h:0,w:[]};db.snd=Object.assign({t:"bip",v:80,vib:600},db.snd||{});
 const save=()=>{try{localStorage.setItem("gymer",JSON.stringify(db))}catch(e){}};
-let tab="train",V={},PE=null,PG=null,POPEN=0,STAG="",EM=0,DIR="t",RT=0,BUSY=0,OPEN={prof:0,bk:0,det:0,tmr:0,col:0,snd:0,cal:0},LK={},LIM={s:99,r:999,k:999,m:3600,km:500,lv:99,ph:260,pw:400};
+let tab="train",V={},PE=null,PG=null,POPEN=0,DS=[],DRAFT=null,EM=0,DIR="t",RT=0,BUSY=0,OPEN={prof:0,bk:0,det:0,tmr:0,col:0,snd:0,cal:0},LK={},LIM={s:99,r:999,k:999,m:3600,km:500,lv:99,ph:260,pw:400};
 const G=()=>db.groups.find(g=>g.id===V.g),E=()=>G()&&G().ex.find(e=>e.id===V.e);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fd=t=>new Date(t).toLocaleDateString("it-IT",{day:"2-digit",month:"short"});
@@ -233,11 +241,34 @@ const ACC=[
   ["#e879f9","#38bdf8"],
   ["#94a3b8","#e2e8f0"]
 ];
-const TAGS={w:["Warm-up","tw"],d:["Drop set","td"],s:["Superset","ts"]};
-const isWork=x=>x.tag!=="w";
-const workLogs=e=>{const ls=e.logs||[],w=ls.filter(isWork);return w.length?w:ls};
+function roundW(raw){if(raw<=0)return 0;return raw<20?Math.max(1,Math.round(raw)):Math.max(2.5,Math.round(raw/2.5)*2.5)}
+function dropCalc(k,pct=-0.25){const base=+k||0;if(base<=0)return 0;return roundW(base*(1+pct))}
+const allParts=x=>[x,...(x.ds||[])];
+const setVol=x=>x.r*x.k+(x.ds||[]).reduce((a,d)=>a+(d.r||0)*(d.k||0),0);
+function dsInfo(x){
+ if(!x.ds||!x.ds.length)return null;
+ let prev=x.k||0,ups=0,downs=0;
+ x.ds.forEach(d=>{const k=d.k||0;if(k>prev)ups++;else if(k<prev)downs++;prev=k});
+ if(ups>0&&downs===0)return{label:"Up",cls:"tu",dir:"up"};
+ if(downs>0&&ups===0)return{label:"Drop",cls:"td",dir:"drop"};
+ return{label:"Drop-Up",cls:"tdu",dir:"mix"};
+}
+const dsFmt=x=>{const inf=dsInfo(x);if(!inf)return"";return` + ${inf.label.toLowerCase()} `+x.ds.map(d=>d.r+" × "+d.k+" kg").join(" → ")};
 const grad=c=>`linear-gradient(135deg,${c},color-mix(in srgb,${c} 55%,#000))`,gcol=(g,i)=>g.c||PAL[i%PAL.length];
 const bwv=()=>{const w=db.prof.w;return w.length?w[w.length-1].v:0};
+function readDraft(){
+ const e=E();if(!e)return;
+ const t=ty(e),d={};
+ t.f.forEach(f=>{const i=$("#"+f[0]);if(i)d[f[0]]=i.value});
+ const r=$("#rpe"),n=$("#nt");
+ if(r)d.rpe=r.value;
+ if(n)d.nt=n.value;
+ DRAFT=d;
+ document.querySelectorAll("[data-dsi]").forEach(inp=>{
+  const idx=+inp.dataset.dsi,fld=inp.dataset.dsf;
+  if(DS[idx])DS[idx][fld]=Math.min(LIM[fld]||999,Math.max(0,+inp.value||0));
+ });
+}
 function cl(o){if(!o||o._c)return;o._c=1;o.style.pointerEvents="none";o.classList.add("out");setTimeout(()=>o.remove(),330)}
 function goto(dir,fn){if(BUSY)return;BUSY=1;DIR=dir;$("#main").className="x"+dir;setTimeout(()=>{BUSY=0;fn();render()},150)}
 function navUpd(){const n=$("#nav");if(!n.dataset.b){n.innerHTML='<i class="ind"></i>'+TABS.map(t=>`<button data-a="tab" data-v="${t[0]}">${I(t[1])}${t[2]}</button>`).join("");n.dataset.b=1}const i=TABS.findIndex(t=>t[0]===tab);n.style.setProperty("--i",i);n.querySelectorAll("button").forEach((b,j)=>b.classList.toggle("on",j===i))}
@@ -256,13 +287,15 @@ function gsheet(g){let col=g?gcol(g,db.groups.indexOf(g)):PAL[db.groups.length%P
   if(b.dataset.ok!==undefined){const n=$("#sf").value.trim();if(!n)return;if(g){g.name=n;g.c=col}else db.groups.push({id:uid(),name:n,c:col,ex:[]});save();cl(o);render()}};
  document.body.appendChild(o)}
 function last(e){const l=e.logs||[];if(!l.length)return null;const k=new Date(l[l.length-1].d).toDateString(),s=l.filter(x=>new Date(x.d).toDateString()===k);return{d:l[l.length-1].d,s}}
+const e1=x=>x.k>0&&x.r>0&&x.r<=12?(x.r===1?x.k:x.k*(1+x.r/30)):0;
+const e1Set=x=>Math.max(0,...allParts(x).map(e1));
 const TY={
- peso:{n:"Pesi",i:"dumbbell",c:"#8b7bff",h:"Serie · rip. · kg",nw:"Nuova serie",sv:"Salva serie",f:[["s","Serie",1,1],["r","Ripetizioni",1,10],["k","Carico (kg)",2.5,20]],req:"r",one:x=>x.k,u:" kg",fmt:x=>x.r+" × "+x.k+" kg",
-  M:[["k","Carico max",L=>Math.max(...L.map(x=>x.k)),"Carico massimo (kg)"],["e","1RM stimato",L=>+Math.max(0,...L.map(e1)).toFixed(1),"1RM stimato (kg)"],["v","Volume",L=>L.reduce((a,x)=>a+x.r*x.k,0),"Volume (kg × rip.)"]],
-  tot:["Volume totale",L=>Math.round(L.reduce((a,x)=>a+x.r*x.k,0)).toLocaleString("it-IT")+" kg"]},
- corpo:{n:"Corpo libero",i:"body",c:"#34d399",h:"Serie · rip.",nw:"Nuova serie",sv:"Salva serie",f:[["s","Serie",1,1],["r","Ripetizioni",1,10],["k","Zavorra (kg)",2.5,0]],req:"r",one:x=>x.r,u:" rip",fmt:x=>x.r+" rip"+(x.k?" + "+x.k+" kg":""),
-  M:[["r","Rip. max",L=>Math.max(...L.map(x=>x.r)),"Ripetizioni massime"],["t","Rip. totali",L=>L.reduce((a,x)=>a+x.r,0),"Ripetizioni totali"]],
-  tot:["Ripetizioni totali",L=>L.reduce((a,x)=>a+x.r,0).toLocaleString("it-IT")]},
+ peso:{n:"Pesi",i:"dumbbell",c:"#8b7bff",h:"Serie · rip. · kg",nw:"Nuova serie",sv:"Salva serie",f:[["s","Serie",1,1],["r","Ripetizioni",1,10],["k","Carico (kg)",2.5,20]],req:"r",one:x=>Math.max(...allParts(x).map(p=>p.k||0)),u:" kg",fmt:x=>x.r+" × "+x.k+" kg",
+  M:[["k","Carico max",L=>Math.max(...L.map(x=>Math.max(...allParts(x).map(p=>p.k||0)))),"Carico massimo (kg)"],["e","1RM stimato",L=>+Math.max(0,...L.map(e1Set)).toFixed(1),"1RM stimato (kg)"],["v","Volume",L=>L.reduce((a,x)=>a+setVol(x),0),"Volume (kg × rip.)"]],
+  tot:["Volume totale",L=>Math.round(L.reduce((a,x)=>a+setVol(x),0)).toLocaleString("it-IT")+" kg"]},
+ corpo:{n:"Corpo libero",i:"body",c:"#34d399",h:"Serie · rip.",nw:"Nuova serie",sv:"Salva serie",f:[["s","Serie",1,1],["r","Ripetizioni",1,10],["k","Zavorra (kg)",2.5,0]],req:"r",one:x=>Math.max(...allParts(x).map(p=>p.r||0)),u:" rip",fmt:x=>x.r+" rip"+(x.k?" + "+x.k+" kg":""),
+  M:[["r","Rip. max",L=>Math.max(...L.map(x=>Math.max(...allParts(x).map(p=>p.r||0)))),"Ripetizioni massime"],["t","Rip. totali",L=>L.reduce((a,x)=>a+x.r+(x.ds||[]).reduce((b,d)=>b+(d.r||0),0),0),"Ripetizioni totali"]],
+  tot:["Ripetizioni totali",L=>L.reduce((a,x)=>a+x.r+(x.ds||[]).reduce((b,d)=>b+(d.r||0),0),0).toLocaleString("it-IT")]},
  tempo:{n:"A tempo",i:"timer",c:"#fbbf24",h:"Plank · isometrici",nw:"Nuova serie",sv:"Salva serie",f:[["s","Serie",1,1],["m","Durata (sec)",5,30]],req:"m",one:x=>x.m,u:" s",fmt:x=>x.m+" s",
   M:[["m","Tempo max",L=>Math.max(...L.map(x=>x.m)),"Tempo massimo (s)"],["t","Tempo totale",L=>L.reduce((a,x)=>a+x.m,0),"Tempo totale (s)"]],
   tot:["Tempo totale",L=>fmt(L.reduce((a,x)=>a+x.m,0))]},
@@ -271,23 +304,47 @@ const TY={
   tot:["Distanza totale",L=>+L.reduce((a,x)=>a+x.km,0).toFixed(1)+" km"]}
 };
 const ty=e=>TY[e.t]||TY.peso;
-const e1=x=>x.k>0&&x.r>0&&x.r<=12?(x.r===1?x.k:x.k*(1+x.r/30)):0;
-const RV={peso:e1,corpo:x=>x.r||0,tempo:x=>x.m||0,cardio:x=>x.km||0},rv=(e,x)=>(RV[e.t||"peso"]||e1)(x);
+const RV={peso:e1Set,corpo:x=>Math.max(...allParts(x).map(p=>p.r||0)),tempo:x=>x.m||0,cardio:x=>x.km||0},rv=(e,x)=>(RV[e.t||"peso"]||e1Set)(x);
 const PRL={peso:v=>"1RM stimato "+(+v.toFixed(1))+" kg",corpo:v=>v+" rip.",tempo:v=>v+" s",cardio:v=>v+" km"};
 const RP=v=>v?v+"/10 · "+(v<4?"facile":v<7?"medio":v<9?"duro":v<10?"molto duro":"massimale"):"non indicato";
 function sug(e){
- const t=e.t||"peso",ls=workLogs(e);if(!ls.length)return[];
- const k=new Date(ls[ls.length-1].d).toDateString(),s=ls.filter(x=>new Date(x.d).toDateString()===k);
- if(!s.length)return[];
+ const t=e.t||"peso",l=last(e);if(!l||!l.s.length)return[];
  const f=n=>+n.toFixed(1);
- if(t==="peso"){const R=[...s].sort((a,b)=>b.k-a.k||b.r-a.r)[0],st=R.k<20?1:2.5;if(!(R.k>0))return[];
-  if(R.r>=12)return[{l:f(R.k+st)+" kg × 8",v:{k:f(R.k+st),r:8},w:"Hai raggiunto 12 rip.: sali di carico"}];
-  const o=[{l:R.k+" kg × "+(R.r+1),v:{k:R.k,r:R.r+1},w:"+1 ripetizione"}];if(R.r>=8)o.push({l:f(R.k+st)+" kg × "+R.r,v:{k:f(R.k+st),r:R.r},w:"+"+st+" kg"});return o}
- if(t==="corpo"){const R=[...s].sort((a,b)=>b.r-a.r)[0],z=R.k||0;return R.r>=15?[{l:f(z+2.5)+" kg zavorra × 10",v:{k:f(z+2.5),r:10},w:"15 rip. fatte: aggiungi zavorra"}]:[{l:R.r+1+" ripetizioni",v:{r:R.r+1},w:"+1 ripetizione"}]}
- if(t==="tempo"){const R=[...s].sort((a,b)=>b.m-a.m)[0];return[{l:R.m+5+" secondi",v:{m:R.m+5},w:"+5 secondi"}]}
- if(t==="cardio"){const R=[...s].sort((a,b)=>b.km-a.km)[0];if(!(R.km>0))return[{l:R.m+2+" minuti",v:{m:R.m+2},w:"+2 minuti"}];const km=f(R.km+.5);return[{l:km+" km",v:{km,m:Math.round(R.m*km/R.km)},w:"+0,5 km allo stesso ritmo"}]}
- return[]}
-function sugCard(e){const S=sug(e);if(!S.length)return"";return`<div class="g" style="padding:16px;margin-top:12px"><div class="row"><div class="tb" style="background:${grad("#fbbf24")};cursor:default">${I("trend")}</div><div class="sp"><b>Suggerimento di oggi</b><div class="mu">Tocca per precompilare il form</div></div></div><div class="seg" style="margin-top:12px;gap:10px">${S.map((o,i)=>`<button class="gb" data-a="sg" data-v="${i}" style="flex-direction:column;gap:2px;padding:12px 8px"><span>${o.l}</span><small style="font-weight:500;opacity:.7;font-size:11px">${o.w}</small></button>`).join("")}</div></div>`}
+ const dsSet=[...l.s].reverse().find(x=>x.ds&&x.ds.length>0);
+ if(t==="peso"){
+  const R=[...l.s].sort((a,b)=>b.k-a.k||b.r-a.r)[0],st=R.k<20?1:2.5;if(!(R.k>0))return[];
+  const o=R.r>=12
+   ?[{l:f(R.k+st)+" kg × "+(R.r>12?R.r:8),v:{k:f(R.k+st),r:R.r>12?R.r:8},w:R.r>12?"Aumenta il carico mantenendo le rip.":"Hai raggiunto 12 rip.: sali di carico"}]
+   :[{l:R.k+" kg × "+(R.r+1),v:{k:R.k,r:R.r+1},w:"+1 ripetizione"}];
+  if(R.r>=8&&R.r<12)o.push({l:f(R.k+st)+" kg × "+R.r,v:{k:f(R.k+st),r:R.r},w:"+"+st+" kg"});
+  if(dsSet&&dsSet.k>0){
+   const dSt=dsSet.k<20?1:2.5;
+   const keepW=dsSet.r<12||dsSet.r>12;
+   const mk=keepW?dsSet.k:f(dsSet.k+dSt);
+   const mr=dsSet.r>12?dsSet.r+1:(dsSet.r>=12?8:dsSet.r+1);
+   const scale=dsSet.k>0?mk/dsSet.k:1;
+   const sds=dsSet.ds.map(d=>({k:scale===1?d.k:roundW(d.k*scale),r:d.r||8}));
+   const inf=dsInfo({k:mk,ds:sds})||{label:"Drop"};
+   const dsChain=sds.map(d=>d.k).join(" → ")+" kg";
+   o.push({l:`${mk} kg × ${mr} + ${inf.label.toLowerCase()} ${dsChain}`,v:{k:mk,r:mr,ds:sds},w:`Serie finale con ${inf.label.toLowerCase()} set`,full:1});
+  }
+  return o;
+ }
+ if(t==="corpo"){
+  const R=[...l.s].sort((a,b)=>b.r-a.r)[0],z=R.k||0;
+  const o=R.r>=15?[{l:f(z+2.5)+" kg zavorra × 10",v:{k:f(z+2.5),r:10},w:"15 rip. fatte: aggiungi zavorra"}]:[{l:R.r+1+" ripetizioni",v:{r:R.r+1},w:"+1 ripetizione"}];
+  if(dsSet){
+   const sds=dsSet.ds.map(d=>({k:d.k||0,r:(d.r||8)+1}));
+   const inf=dsInfo({k:dsSet.k||0,ds:sds})||{label:"Drop"};
+   o.push({l:`${dsSet.r+1} rip + ${inf.label.toLowerCase()} ${sds.map(d=>d.r+" rip"+(d.k?" ("+d.k+" kg)":"")).join(" → ")}`,v:{k:dsSet.k||0,r:dsSet.r+1,ds:sds},w:`Con ${inf.label.toLowerCase()} set a sfinimento`,full:1});
+  }
+  return o;
+ }
+ if(t==="tempo"){const R=[...l.s].sort((a,b)=>b.m-a.m)[0];return[{l:R.m+5+" secondi",v:{m:R.m+5},w:"+5 secondi"}]}
+ if(t==="cardio"){const R=[...l.s].sort((a,b)=>b.km-a.km)[0];if(!(R.km>0))return[{l:R.m+2+" minuti",v:{m:R.m+2},w:"+2 minuti"}];const km=f(R.km+.5);return[{l:km+" km",v:{km,m:Math.round(R.m*km/R.km)},w:"+0,5 km allo stesso ritmo"}]}
+ return[];
+}
+function sugCard(e){const S=sug(e);if(!S.length)return"";return`<div class="g" style="padding:16px;margin-top:12px"><div class="row"><div class="tb" style="background:${grad("#fbbf24")};cursor:default">${I("trend")}</div><div class="sp"><b>Suggerimento di oggi</b><div class="mu">Tocca per precompilare il form</div></div></div><div class="seg" style="margin-top:12px;gap:10px">${S.map((o,i)=>`<button class="gb" data-a="sg" data-v="${i}" style="${o.full?"flex:1 1 100%;":""}flex-direction:column;gap:2px;padding:12px 8px"><span>${o.l}</span><small style="font-weight:500;opacity:.7;font-size:11px">${o.w}</small></button>`).join("")}</div></div>`}
 function esheet(g,x){let t=x?(x.t||"peso"):"peso";const lock=!!(x&&(x.logs||[]).length),o=document.createElement("div");o.className="ov";
  o.innerHTML=`<div class="sheet"><h3>${x?"Modifica esercizio":"Nuovo esercizio"}</h3><input id="sf" maxlength="40" placeholder="Nome esercizio" value="${esc(x?x.name:"")}" style="margin-bottom:14px"><div class="mu" style="text-align:center;margin-bottom:8px">Tipo${lock?" (bloccato: ci sono già dati)":""}</div><div class="tp">${Object.keys(TY).map(k=>`<button class="gb ${k===t?"on":""}" data-t="${k}" ${lock?"disabled":""}>${I(TY[k].i)}<span>${TY[k].n}</span><small style="font-weight:500;opacity:.7;font-size:11px">${TY[k].h}</small></button>`).join("")}</div><div class="seg"><button class="gb" data-x>Annulla</button><button class="gb on" data-ok>Salva</button></div></div>`;
  o.onclick=ev=>{const b=ev.target.closest("button");if(ev.target===o||(b&&b.dataset.x!==undefined)){cl(o);return}if(!b)return;
@@ -408,7 +465,7 @@ function sheet(t,ph,ok,val){
 /* ---------- CHART ---------- */
 function series(e,m){
  const t=ty(e),M=t.M.find(x=>x[0]===m)||t.M[0],d={};
- workLogs(e).forEach(x=>{const k=new Date(x.d).toDateString();(d[k]=d[k]||[]).push(x)});
+ (e.logs||[]).forEach(x=>{const k=new Date(x.d).toDateString();(d[k]=d[k]||[]).push(x)});
  return Object.keys(d).map(k=>({t:new Date(k),y:M[2](d[k])}))
 }
 function chart(pts,u){
@@ -495,22 +552,46 @@ function consistencyCard(){
 /* ---------- VIEWS ---------- */
 function vTrain(){
  if(V.e){
-  const e=E(),t=ty(e),ls=e.logs||[],wls=workLogs(e);
-  const b1=(e.t||"peso")==="peso"?Math.max(0,...wls.map(e1)):0;
+  const e=E(),t=ty(e),ls=e.logs||[];
+  const b1=(e.t||"peso")==="peso"?Math.max(0,...ls.map(e1Set)):0;
   const l=last(e),lx=ls[ls.length-1]||{};
   const ns=l&&new Date(l.d).toDateString()===new Date().toDateString()?l.s.length+1:1;
-  const lWork=l?l.s.filter(isWork):[],topSrc=lWork.length?lWork:(l?l.s:[]);
-  const top=topSrc.length?Math.max(...topSrc.map(t.one)):0;
+  const top=l?Math.max(...l.s.map(t.one)):0;
+  const canDrop=(e.t||"peso")==="peso"||e.t==="corpo";
+  const curK=DRAFT&&DRAFT.k!==undefined?+DRAFT.k:(lx.k!==undefined?lx.k:20);
+  const curRpe=DRAFT&&DRAFT.rpe!==undefined?+DRAFT.rpe:0;
+  const curNt=DRAFT&&DRAFT.nt!==undefined?DRAFT.nt:"";
   return`<h1><button class="gb rd sm" data-a="back">${I("back")}</button><span>${esc(e.name)}</span><div class="tb" style="background:${grad(t.c)};cursor:default">${I(t.i)}</div></h1>
-  <div class="g card" style="cursor:default"><div class="mu">${t.n} · ultimo risultato</div><div style="font-size:38px;font-weight:800;letter-spacing:-.02em">${l?+top.toFixed(1)+t.u:"—"}</div><div class="mu">${l?l.s.map(x=>t.fmt(x)+(x.tag&&TAGS[x.tag]?" ("+TAGS[x.tag][0]+")":"")).join(" · ")+" · "+fd(l.d):"Registra il tuo primo risultato"}</div>${b1?`<div class="mu" style="margin-top:8px;display:flex;align-items:center;gap:8px"><span style="color:#fbbf24;display:flex">${I("trophy")}</span><span>1RM stimato <b style="color:var(--tx)">${+b1.toFixed(1)} kg</b></span></div>`:""}</div>
-  ${l&&e.t!=="cardio"?`<button class="gb on" data-a="same" style="width:100%;margin-top:12px;padding:16px;border-radius:22px;font-size:16px;flex-direction:column;gap:2px"><span class="row" style="gap:8px">${I("reset")}<b>Come ultima volta</b></span><small style="font-weight:500;opacity:.85;font-size:12px">${t.fmt(lx)} · salva in un tocco</small></button>`:""}${sugCard(e)}${e.t==="cardio"?liveCard():""}<h2>${e.t==="cardio"?"Inserimento manuale":t.nw}</h2><div class="g" style="padding:16px"><div class="fl">${t.f.map(f=>`<div class="nr"><label>${f[1]}</label><div class="step"><button class="gb sm" data-a="st" data-f="${f[0]}" data-d="-${f[2]}">${I("minus")}</button><input id="${f[0]}" type="number" inputmode="${Number.isInteger(f[2])?"numeric":"decimal"}" value="${f[0]==="s"?ns:(lx[f[0]]!==undefined?lx[f[0]]:f[3])}"><button class="gb sm" data-a="st" data-f="${f[0]}" data-d="${f[2]}">${I("plus")}</button></div></div>`).join("")}</div>
-  ${e.t!=="cardio"?`<div class="tag-row">${[["","Normale"],["w","Warm-up"],["d","Drop set"],["s","Superset"]].map(tg=>`<button type="button" class="gb ${STAG===tg[0]?"on":""}" data-a="stag" data-v="${tg[0]}">${tg[1]}</button>`).join("")}</div>`:""}
+  <div class="g card" style="cursor:default"><div class="mu">${t.n} · ultimo risultato</div><div style="font-size:38px;font-weight:800;letter-spacing:-.02em">${l?+top.toFixed(1)+t.u:"—"}</div><div class="mu">${l?l.s.map(x=>t.fmt(x)+dsFmt(x)).join(" · ")+" · "+fd(l.d):"Registra il tuo primo risultato"}</div>${b1?`<div class="mu" style="margin-top:8px;display:flex;align-items:center;gap:8px"><span style="color:#fbbf24;display:flex">${I("trophy")}</span><span>1RM stimato <b style="color:var(--tx)">${+b1.toFixed(1)} kg</b></span></div>`:""}</div>
+  ${l&&e.t!=="cardio"?`<button class="gb on" data-a="same" style="width:100%;margin-top:12px;padding:16px;border-radius:22px;font-size:16px;flex-direction:column;gap:2px"><span class="row" style="gap:8px">${I("reset")}<b>Come ultima volta</b></span><small style="font-weight:500;opacity:.85;font-size:12px">${t.fmt(lx)+dsFmt(lx)} · salva in un tocco</small></button>`:""}${sugCard(e)}${e.t==="cardio"?liveCard():""}<h2>${e.t==="cardio"?"Inserimento manuale":t.nw}</h2><div class="g" style="padding:16px"><div class="fl">${t.f.map(f=>`<div class="nr"><label>${f[1]}</label><div class="step"><button class="gb sm" data-a="st" data-f="${f[0]}" data-d="-${f[2]}">${I("minus")}</button><input id="${f[0]}" type="number" inputmode="${Number.isInteger(f[2])?"numeric":"decimal"}" value="${DRAFT&&DRAFT[f[0]]!==undefined?DRAFT[f[0]]:(f[0]==="s"?ns:(lx[f[0]]!==undefined?lx[f[0]]:f[3]))}"><button class="gb sm" data-a="st" data-f="${f[0]}" data-d="${f[2]}">${I("plus")}</button></div></div>`).join("")}</div>
+  ${canDrop?`${DS.map((d,idx)=>{
+   const refK=idx===0?curK:(DS[idx-1].k||0);
+   const dk=+d.k||0;
+   const isUp=dk>refK,isDrop=dk<refK;
+   const pct=refK>0&&dk!==refK?Math.round((dk-refK)/refK*100):0;
+   const tagCls=isUp?"tu":(isDrop?"td":"tdu");
+   const boxCls=isUp?"up":(isDrop?"":"eq");
+   const tagTxt=(isUp?"Up ":(isDrop?"Drop ":"Step "))+(idx+1);
+   const kStep=(dk<20&&refK<20)?1:2.5;
+   return`<div class="ds-box ${boxCls}">
+    <div class="row" style="margin-bottom:8px;gap:6px">
+     <span class="tbadge ${tagCls}" style="margin-left:0">${tagTxt}</span>
+     <span class="mu sp" style="font-size:11px">${pct!==0?(pct>0?"+"+pct+"%":pct+"%"):"stesso carico"}</span>
+     ${refK>0?`<button type="button" class="gb ds-qpill" data-a="dsq" data-i="${idx}" data-p="-0.25">-25%</button><button type="button" class="gb ds-qpill" data-a="dsq" data-i="${idx}" data-p="0.25">+25%</button>`:""}
+     <button type="button" class="gb sm" style="width:28px;height:28px;border-radius:9px;padding:0" data-a="dsdel" data-v="${idx}">${I("x")}</button>
+    </div>
+    <div class="f2" style="margin-bottom:0">
+     <div><label>Ripetizioni</label><div class="step"><button type="button" class="gb sm" data-a="dsst" data-i="${idx}" data-f="r" data-d="-1">${I("minus")}</button><input type="number" inputmode="numeric" data-dsi="${idx}" data-dsf="r" value="${d.r}"><button type="button" class="gb sm" data-a="dsst" data-i="${idx}" data-f="r" data-d="1">${I("plus")}</button></div></div>
+     <div><label>${e.t==="corpo"?"Zavorra (kg)":"Carico (kg)"}</label><div class="step"><button type="button" class="gb sm" data-a="dsst" data-i="${idx}" data-f="k" data-d="-${kStep}">${I("minus")}</button><input type="number" inputmode="decimal" data-dsi="${idx}" data-dsf="k" value="${d.k}"><button type="button" class="gb sm" data-a="dsst" data-i="${idx}" data-f="k" data-d="${kStep}">${I("plus")}</button></div></div>
+    </div>
+   </div>`;
+  }).join("")}${DS.length<6?`<div class="ds-add-row"><button type="button" class="gb ds-add drop" data-a="dsadd" data-dir="-1">${I("plus")} Drop (-25%)</button><button type="button" class="gb ds-add up" data-a="dsadd" data-dir="1">${I("plus")} Up (+25%)</button></div>`:""}`:""}
   <button class="gb acc ${OPEN.det?"open":""}" data-a="tg" data-v="det" style="margin-top:0;margin-bottom:4px"><span class="row" style="gap:10px">${I("pulse")}<b>Sforzo e note</b></span><span class="mu sp" style="text-align:right;font-weight:500">facoltativo</span>${I("chev","cv")}</button>
-  <div class="col ${OPEN.det?"open":""}" id="c-det"><div><div style="padding-top:8px"><div class="rr"><div class="row"><b style="font-size:15px">Sforzo (RPE)</b><span class="sp"></span><span class="mu" id="rpl">non indicato</span></div><input type="range" id="rpe" min="0" max="10" step="1" value="0"></div><input id="nt" maxlength="80" placeholder="Nota (es. buona tecnica)" style="text-align:left;margin-bottom:12px"></div></div></div>
+  <div class="col ${OPEN.det?"open":""}" id="c-det"><div><div style="padding-top:8px"><div class="rr"><div class="row"><b style="font-size:15px">Sforzo (RPE)</b><span class="sp"></span><span class="mu" id="rpl">${RP(curRpe)}</span></div><input type="range" id="rpe" min="0" max="10" step="1" value="${curRpe}"></div><input id="nt" maxlength="80" placeholder="Nota (es. buona tecnica)" value="${esc(curNt)}" style="text-align:left;margin-bottom:12px"></div></div></div>
   <button class="gb on" data-a="log" style="width:100%;padding:14px">${I("check")} ${t.sv}</button></div>
-  <h2>Storico</h2>${[...ls].reverse().slice(0,12).map(x=>`<div class="g item row"><span class="mu" style="width:56px">${fd(x.d)}</span><span class="sp"><b>${t.fmt(x)}</b>${x.tag&&TAGS[x.tag]?`<span class="tbadge ${TAGS[x.tag][1]}">${TAGS[x.tag][0]}</span>`:""}${x.s?` <span class="mu">serie ${x.s}</span>`:""}${x.p?` <span class="mu">· RPE ${x.p}</span>`:""}${x.n?`<div class="mu" style="font-size:12px;margin-top:2px">${esc(x.n)}</div>`:""}</span>${x.pr?`<span style="color:#fbbf24;display:flex">${I("trophy")}</span>`:""}${x.route?`<div style="width:76px;flex:none">${rsvg(x.route,76,56)}</div>`:""}<button class="gb sm" data-a="dlog" data-v="${x.d}">${I("x")}</button></div>`).join("")||`<div class="ex">Ancora nessun dato</div>`}`}
+  <h2>Storico</h2>${[...ls].reverse().slice(0,12).map(x=>{const inf=dsInfo(x);return`<div class="g item row"><span class="mu" style="width:56px">${fd(x.d)}</span><span class="sp"><b>${t.fmt(x)}</b>${inf?`<span class="tbadge ${inf.cls}">${inf.label} ×${x.ds.length}</span>`:""}${x.s?` <span class="mu">serie ${x.s}</span>`:""}${x.p?` <span class="mu">· RPE ${x.p}</span>`:""}${inf?`<div class="mu" style="font-size:12px;margin-top:2px;color:var(--tx);opacity:.85">↳ ${inf.label}: ${x.ds.map(d=>d.r+" × "+d.k+" kg").join(" → ")}</div>`:""}${x.n?`<div class="mu" style="font-size:12px;margin-top:2px">${esc(x.n)}</div>`:""}</span>${x.pr?`<span style="color:#fbbf24;display:flex">${I("trophy")}</span>`:""}${x.route?`<div style="width:76px;flex:none">${rsvg(x.route,76,56)}</div>`:""}<button class="gb sm" data-a="dlog" data-v="${x.d}">${I("x")}</button></div>`}).join("")||`<div class="ex">Ancora nessun dato</div>`}`}
  if(V.g){const g=G();return`<h1><button class="gb rd sm" data-a="back">${I("back")}</button><span>${esc(g.name)}</span><button class="gb sm" data-a="adde">${I("plus")}</button>${EM?`<button class="gb sm" data-a="eg" data-v="${g.id}">${I("palette")}</button>`:""}<button class="gb sm ${EM?"on":""}" data-a="em">${I(EM?"check":"edit")}</button></h1>
-  ${g.ex.map(e=>{const l=last(e),lw=l?l.s.filter(isWork):[],ts=lw.length?lw:(l?l.s:[]);return`<div class="g item row"><div class="tb" data-a="${EM?"rne":"ex"}" data-v="${e.id}" style="background:${grad(ty(e).c)}">${I(ty(e).i)}</div><div class="sp" data-a="${EM?"rne":"ex"}" data-v="${e.id}" style="cursor:pointer"><b style="font-size:16px">${esc(e.name)}</b><div class="mu">${l?`${ty(e).n} · ${+Math.max(...ts.map(ty(e).one)).toFixed(1)}${ty(e).u} · ${fd(l.d)}`:ty(e).n+" · nessun dato"}</div></div>${EM?`<button class="gb sm" data-a="rne" data-v="${e.id}">${I("edit")}</button><button class="gb sm" data-a="dele" data-v="${e.id}">${I("trash")}</button>`:""}</div>`}).join("")||`<div class="ex">Nessun esercizio. Tocca + in alto per aggiungerne uno.</div>`}
+  ${g.ex.map(e=>{const l=last(e);return`<div class="g item row"><div class="tb" data-a="${EM?"rne":"ex"}" data-v="${e.id}" style="background:${grad(ty(e).c)}">${I(ty(e).i)}</div><div class="sp" data-a="${EM?"rne":"ex"}" data-v="${e.id}" style="cursor:pointer"><b style="font-size:16px">${esc(e.name)}</b><div class="mu">${l?`${ty(e).n} · ${+Math.max(...l.s.map(ty(e).one)).toFixed(1)}${ty(e).u} · ${fd(l.d)}`:ty(e).n+" · nessun dato"}</div></div>${EM?`<button class="gb sm" data-a="rne" data-v="${e.id}">${I("edit")}</button><button class="gb sm" data-a="dele" data-v="${e.id}">${I("trash")}</button>`:""}</div>`}).join("")||`<div class="ex">Nessun esercizio. Tocca + in alto per aggiungerne uno.</div>`}
   `}
  return`<h1><span>Allenamento</span><button class="gb sm" data-a="addg">${I("plus")}</button><button class="gb sm ${EM?"on":""}" data-a="em">${I(EM?"check":"edit")}</button></h1><div class="grid fill">${db.groups.map((g,i)=>`<div class="g card" data-a="${EM?"eg":"grp"}" data-v="${g.id}">${EM?`<button class="gb sm" data-a="dg" data-v="${g.id}" style="position:absolute;top:10px;right:10px">${I("trash")}</button>`:""}<div class="badge" style="background:${grad(gcol(g,i))}">${I("dumbbell")}</div><div><b style="font-size:17px">${esc(g.name)}</b><div class="mu">${EM?"Tocca per modificare":g.ex.length+" esercizi"}</div></div></div>`).join("")}</div>`}
 function vTimer(){
@@ -537,11 +618,11 @@ function vProg(){
  const selG=grps.find(g=>g.id===PG)||curG;
  PG=selG.id;
 
- const t=ty(curE),ls=curE.logs||[],wls=workLogs(curE);
+ const t=ty(curE),ls=curE.logs||[];
  const M=t.M.find(x=>x[0]===db.metric)||t.M[0],pts=series(curE,M[0]);
- const pr=wls.length?Math.max(...wls.map(t.one)):0;
+ const pr=ls.length?Math.max(...ls.map(t.one)):0;
  const ses=new Set(ls.map(x=>new Date(x.d).toDateString())).size;
- const l=last(curE),lw=l?l.s.filter(isWork):[],topSrc=lw.length?lw:(l?l.s:[]);
+ const l=last(curE);
 
  let deltaHtml="";
  if(pts.length>1){
@@ -594,13 +675,13 @@ function vProg(){
  <h2>Riepilogo</h2>
  <div class="pr">
   <div class="g gb" style="border-radius:18px"><b>${pr?+pr.toFixed(1)+t.u:"—"}</b><small>Record</small></div>
-  <div class="g gb" style="border-radius:18px"><b>${topSrc.length?+Math.max(...topSrc.map(t.one)).toFixed(1)+t.u:"—"}</b><small>Ultimo</small></div>
+  <div class="g gb" style="border-radius:18px"><b>${l?+Math.max(...l.s.map(t.one)).toFixed(1)+t.u:"—"}</b><small>Ultimo</small></div>
   <div class="g gb" style="border-radius:18px"><b>${ses}</b><small>Sessioni</small></div>
  </div>
 
  <div class="sgrid">
-  <div class="g scard"><span class="mu" style="font-size:11px">${t.tot[0]}</span><b>${wls.length?t.tot[1](wls):"—"}</b></div>
-  ${(curE.t||"peso")==="peso"&&wls.some(x=>e1(x)>0)?`<div class="g scard"><span class="mu" style="font-size:11px">1RM stimato</span><b>${+Math.max(...wls.map(e1)).toFixed(1)} kg</b></div>`:""}
+  <div class="g scard"><span class="mu" style="font-size:11px">${t.tot[0]}</span><b>${ls.length?t.tot[1](ls):"—"}</b></div>
+  ${(curE.t||"peso")==="peso"&&ls.some(x=>e1Set(x)>0)?`<div class="g scard"><span class="mu" style="font-size:11px">1RM stimato</span><b>${+Math.max(...ls.map(e1Set)).toFixed(1)} kg</b></div>`:""}
   ${ls.some(x=>x.pr)?`<div class="g scard"><span class="mu" style="font-size:11px">Record battuti</span><b>${ls.filter(x=>x.pr).length}</b></div>`:""}
   ${bwv()&&pr&&(curE.t||"peso")==="peso"?`<div class="g scard"><span class="mu" style="font-size:11px">Rapporto peso</span><b>${(pr/bwv()).toFixed(2)}× BW</b></div>`:""}
  </div></div>`}
@@ -636,15 +717,18 @@ const SLOW={log:1,prof:1,astart:1,aend:1,imp:1,exp:1};
 document.addEventListener("click",ev=>{
  const el=ev.target.closest("[data-a]");if(!el)return;const a=el.dataset.a,v=el.dataset.v,g=G(),e=E();if(a!=="log"&&a!=="same")tap();
  if(SLOW[a]){const n=Date.now();if(n-(LK[a]||0)<900)return;LK[a]=n}
- if(a==="tab"){if(v===tab&&!(v==="train"&&(V.g||V.e)))return;const ni=TABS.findIndex(t=>t[0]===v),oi=TABS.findIndex(t=>t[0]===tab);goto(ni>=oi?"f":"b",()=>{tab=v;EM=0;POPEN=0;STAG="";Object.keys(OPEN).forEach(k=>OPEN[k]=0);if(v==="train")V={}})}
- else if(a==="grp")goto("f",()=>{EM=0;V={g:v}});else if(a==="ex")goto("f",()=>{OPEN.det=0;STAG="";V={g:V.g,e:v}});
- else if(a==="back")goto("b",()=>{EM=0;STAG="";V=V.e?{g:V.g}:{}});
+ if(a==="tab"){if(v===tab&&!(v==="train"&&(V.g||V.e)))return;const ni=TABS.findIndex(t=>t[0]===v),oi=TABS.findIndex(t=>t[0]===tab);goto(ni>=oi?"f":"b",()=>{tab=v;EM=0;POPEN=0;DS=[];DRAFT=null;Object.keys(OPEN).forEach(k=>OPEN[k]=0);if(v==="train")V={}})}
+ else if(a==="grp")goto("f",()=>{EM=0;V={g:v}});else if(a==="ex")goto("f",()=>{OPEN.det=0;DS=[];DRAFT=null;V={g:V.g,e:v}});
+ else if(a==="back")goto("b",()=>{EM=0;DS=[];DRAFT=null;V=V.e?{g:V.g}:{}});
  else if(a==="addg"){if(db.groups.length>=24)toast("Limite di 24 gruppi raggiunto");else gsheet(null)}else if(a==="eg")gsheet(db.groups.find(x=>x.id===v));
  else if(a==="em"){EM=EM?0:1;render(true)}
  else if(a==="tg"){OPEN[v]=!OPEN[v];el.classList.toggle("open",OPEN[v]);const c=$("#c-"+v);if(c)c.classList.toggle("open",OPEN[v])}
- else if(a==="stag"){STAG=v;render(true)}
+ else if(a==="dsadd"){readDraft();const dir=+(el.dataset.dir||-1);const baseK=DS.length?DS[DS.length-1].k:(+($("#k")||{}).value||0);const baseR=DS.length?DS[DS.length-1].r:(+($("#r")||{}).value||8);const nextR=dir>0?Math.max(1,baseR-4):baseR;DS.push({r:nextR,k:dropCalc(baseK,dir*0.25)});render(true)}
+ else if(a==="dsq"){readDraft();const idx=+el.dataset.i,pct=+el.dataset.p;const curK=+($("#k")||{}).value||0;const refK=idx===0?curK:(DS[idx-1]&&DS[idx-1].k||0);if(DS[idx]&&refK>0){DS[idx].k=dropCalc(refK,pct);render(true)}}
+ else if(a==="dsdel"){readDraft();DS.splice(+v,1);render(true)}
+ else if(a==="dsst"){readDraft();const idx=+el.dataset.i,fld=el.dataset.f,dl=+el.dataset.d;if(DS[idx]){DS[idx][fld]=Math.min(LIM[fld]||999,Math.max(0,+((+DS[idx][fld])+dl).toFixed(1)));render(true)}}
  else if(a==="ak"){AK=v;render(true)}
- else if(a==="sg"){const o=sug(e)[+v];if(o){Object.keys(o.v).forEach(k=>{const i=$("#"+k);if(i)i.value=o.v[k]});toast("Impostato: "+o.l)}}
+ else if(a==="sg"){const o=sug(e)[+v];if(o){readDraft();Object.keys(o.v).forEach(k=>{if(k!=="ds"&&DRAFT)DRAFT[k]=o.v[k]});DS=o.v.ds?o.v.ds.map(d=>({...d})):[];render(true);toast("Impostato: "+o.l)}}
  else if(a==="snd"){db.snd.t=v;save();beep(v);render(true)}else if(a==="stest"){beep();vib()}else if(a==="astart")astart();else if(a==="apause")apause();else if(a==="aend")aend();else if(a==="amin")amin();else if(a==="ashow")ashow();
  else if(a==="dg")del("Gruppo eliminato",()=>{db.groups=db.groups.filter(x=>x.id!==v)});
  else if(a==="acc"){db.ac=+v;save();render(true)}
@@ -654,10 +738,13 @@ document.addEventListener("click",ev=>{
  else if(a==="rne")esheet(g,g.ex.find(i=>i.id===v));
  else if(a==="dele")del("Esercizio eliminato",()=>{g.ex=g.ex.filter(x=>x.id!==v)});
  else if(a==="st"){const i=$("#"+el.dataset.f);i.value=Math.min(LIM[el.dataset.f]||999,Math.max(0,+((+i.value)+(+el.dataset.d)).toFixed(1)))}
- else if(a==="log"){const t=ty(e),o={d:Date.now()};let bad=0;t.f.forEach(f=>{const x=+$("#"+f[0]).value||0;if(x<0||x>(LIM[f[0]]||999))bad=1;o[f[0]]=Math.round(x*100)/100});if(bad){toast("Controlla i valori inseriti");return}if(!(o[t.req]>0))return;const td=new Date().toDateString();if(e.logs.filter(x=>new Date(x.d).toDateString()===td).length>=60){toast("Limite giornaliero raggiunto (60)");return}const rp=+($("#rpe")||{}).value,nt=(($("#nt")||{}).value||"").trim().slice(0,80);if(rp)o.p=rp;if(nt)o.n=nt;if(e.t!=="cardio"&&STAG)o.tag=STAG;
-  const pv=workLogs(e).map(x=>rv(e,x)),nv=rv(e,o),isPR=o.tag!=="w"&&pv.length>0&&nv>0&&nv>Math.max(...pv);if(isPR)o.pr=1;
-  e.logs.push(o);STAG="";save();if(isPR){toast("Nuovo record! "+(PRL[e.t||"peso"]||PRL.peso)(nv),"trophy");beep("campanello");vib()}else{toast("Salvato");tap([30,40,30])}render(true)}
- else if(a==="same"){const t=ty(e),lx=(e.logs||[])[(e.logs||[]).length-1];if(!lx)return;t.f.forEach(f=>{const i=$("#"+f[0]);if(i&&f[0]!=="s"&&lx[f[0]]!==undefined)i.value=lx[f[0]]});STAG=(lx.tag&&lx.tag!=="w")?lx.tag:"";const r=$("#rpe"),n=$("#nt");if(r)r.value=0;if(n)n.value="";const b=$("[data-a=log]");if(b)b.click()}
+ else if(a==="log"){const t=ty(e),o={d:Date.now()};let bad=0;t.f.forEach(f=>{const x=+$("#"+f[0]).value||0;if(x<0||x>(LIM[f[0]]||999))bad=1;o[f[0]]=Math.round(x*100)/100});if(bad){toast("Controlla i valori inseriti");return}if(!(o[t.req]>0))return;const td=new Date().toDateString();if(e.logs.filter(x=>new Date(x.d).toDateString()===td).length>=60){toast("Limite giornaliero raggiunto (60)");return}const rp=+($("#rpe")||{}).value,nt=(($("#nt")||{}).value||"").trim().slice(0,80);if(rp)o.p=rp;if(nt)o.n=nt;
+  document.querySelectorAll("[data-dsi]").forEach(inp=>{const idx=+inp.dataset.dsi,fld=inp.dataset.dsf;if(DS[idx])DS[idx][fld]=Math.min(LIM[fld]||999,Math.max(0,+inp.value||0))});
+  const vds=DS.filter(d=>d.r>0||d.k>0).map(d=>({r:Math.round(d.r),k:Math.round(d.k*100)/100}));
+  if(vds.length)o.ds=vds;
+  const pv=e.logs.map(x=>rv(e,x)),nv=rv(e,o),isPR=pv.length>0&&nv>0&&nv>Math.max(...pv);if(isPR)o.pr=1;
+  e.logs.push(o);DS=[];DRAFT=null;save();if(isPR){toast("Nuovo record! "+(PRL[e.t||"peso"]||PRL.peso)(nv),"trophy");beep("campanello");vib()}else{toast("Salvato");tap([30,40,30])}render(true)}
+ else if(a==="same"){const t=ty(e),lx=(e.logs||[])[(e.logs||[]).length-1];if(!lx)return;DRAFT=null;t.f.forEach(f=>{const i=$("#"+f[0]);if(i&&f[0]!=="s"&&lx[f[0]]!==undefined)i.value=lx[f[0]]});DS=(lx.ds&&lx.ds.length)?lx.ds.map(d=>({...d})):[];const r=$("#rpe"),n=$("#nt");if(r)r.value=0;if(n)n.value="";const b=$("[data-a=log]");if(b)b.click()}
  else if(a==="dlog")del("Serie eliminata",()=>{e.logs=e.logs.filter(x=>x.d!==+v)});
  else if(a==="ptog"){POPEN=POPEN?0:1;if(POPEN){const g0=db.groups.find(gr=>gr.ex.some(x=>x.id===PE));if(g0)PG=g0.id}render(true)}
  else if(a==="pg"){PG=v;render(true)}
@@ -677,9 +764,9 @@ document.addEventListener("click",ev=>{
  else if(a==="exp"){const j=JSON.stringify(db,null,1);$("#bk").value=j;try{const u=URL.createObjectURL(new Blob([j],{type:"application/json"})),l=document.createElement("a");l.href=u;l.download="gymer-backup.json";l.click()}catch(x){}}
  else if(a==="imp")imp($("#bk").value);
 });
-function imp(t){try{const d=JSON.parse(t);if(!Array.isArray(d.groups))throw 0;del("Dati importati",()=>{db=d;db.theme=db.theme||"dark";db.metric=db.metric||"k";db.prof=db.prof||{h:0,w:[]};if(!db.timers||db.timers.length!==3)db.timers=[60,90,180];db.snd=Object.assign({t:"bip",v:80,vib:600},db.snd||{});V={}})}catch(e){toast("JSON non valido")}}
+function imp(t){try{const d=JSON.parse(t);if(!Array.isArray(d.groups))throw 0;del("Dati importati",()=>{db=d;db.theme=db.theme||"dark";db.metric=db.metric||"k";db.prof=db.prof||{h:0,w:[]};if(!db.timers||db.timers.length!==3)db.timers=[60,90,180];db.snd=Object.assign({t:"bip",v:80,vib:600},db.snd||{});V={};DS=[];DRAFT=null})}catch(e){toast("JSON non valido")}}
 document.addEventListener("change",e=>{if(e.target.id==="fi"&&e.target.files[0]){const r=new FileReader();r.onload=()=>imp(r.result);r.readAsText(e.target.files[0])}});
-document.addEventListener("input",e=>{const i=e.target;if(i.type==="number"){const m=LIM[i.id];if(m&&+i.value>m)i.value=m;if(+i.value<0)i.value=0}});
+document.addEventListener("input",e=>{const i=e.target;if(i.type==="number"){const m=LIM[i.dataset.dsf||i.id];if(m&&+i.value>m)i.value=m;if(+i.value<0)i.value=0;if(i.dataset.dsi!==undefined&&DS[+i.dataset.dsi])DS[+i.dataset.dsi][i.dataset.dsf]=+i.value||0}});
 document.addEventListener("input",e=>{const i=e.target;if(i.id==="rpe")$("#rpl").textContent=RP(+i.value);if(i.id==="sv"){db.snd.v=+i.value;$("#svl").textContent=i.value+"%"}if(i.id==="sd"){db.snd.vib=+i.value;$("#sdl").textContent=+i.value>0?i.value+" ms":"Off"}});
 document.addEventListener("change",e=>{const i=e.target;if(i.id==="sv"){save();beep()}if(i.id==="sd"){save();vib()}});
 render();aupd();
