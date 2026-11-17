@@ -84,7 +84,7 @@ label{font-size:12px;color:var(--mu);display:block;margin-bottom:5px;text-align:
 .flash{animation:pu .7s 3}@keyframes pu{50%{transform:scale(1.04)}}
 .ex{text-align:center;padding:36px 10px;color:var(--mu)}
 .f2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-.fl{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
+.fl{display:flex;flex-direction:column;gap:12px;margin-bottom:14px}
 .nr{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .nr label{margin:0;text-align:left;font-size:15px;font-weight:600;color:var(--tx)}
 .nr .step{width:min(220px,64%);flex:none}
@@ -94,6 +94,36 @@ label{font-size:12px;color:var(--mu);display:block;margin-bottom:5px;text-align:
 .sw8{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:18px}
 .sw{width:38px;height:38px;border-radius:50%;border:2px solid var(--gbd);cursor:pointer;padding:0;box-shadow:inset 0 1px 2px rgba(255,255,255,.55);transition:transform .2s}
 .sw.sel{transform:scale(1.15);outline:3px solid var(--tx);outline-offset:2px}
+
+/* Tag serie (Warm-up / Drop set / Superset) */
+.tag-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px}
+.tag-row .gb{padding:9px 4px;font-size:12px;border-radius:13px}
+.tbadge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;margin-left:6px;vertical-align:middle;letter-spacing:.03em;text-transform:uppercase}
+.tbadge.tw{background:rgba(251,191,36,.18);color:#fbbf24}
+.tbadge.td{background:rgba(255,95,162,.18);color:#ff5fa2}
+.tbadge.ts{background:color-mix(in srgb,var(--ac2) 20%,transparent);color:var(--ac2)}
+
+/* Costanza e Calendario in Progressi */
+.cal-card{padding:15px 16px;margin-bottom:14px}
+.cal-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.cal-kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.cal-kpi{background:var(--g2);border:1px solid var(--gbd);border-radius:16px;padding:10px 12px;display:flex;align-items:center;gap:10px}
+.cal-kpi b{font-size:17px;display:block;line-height:1.15}
+.cal-kpi span{font-size:11px;color:var(--mu)}
+.wk-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:12px}
+.wk-day{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 2px;border-radius:13px;background:var(--g2);border:1px solid transparent;font-size:10px;font-weight:700;color:var(--mu)}
+.wk-day.tod{border-color:var(--ac2)}
+.wk-day.on{background:linear-gradient(145deg,color-mix(in srgb,var(--ac) 75%,transparent),color-mix(in srgb,var(--ac2) 55%,transparent));color:#fff;border-color:rgba(255,255,255,.35)}
+.wk-dot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.45}
+.wk-day.on .wk-dot{opacity:1;background:#fff}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;text-align:center}
+.cal-hd{font-size:10px;font-weight:700;color:var(--mu);padding-bottom:2px}
+.cal-cell{aspect-ratio:1;border-radius:10px;display:grid;place-items:center;font-size:11px;font-weight:600;color:var(--mu);background:var(--g2)}
+.cal-cell.emp{background:transparent}
+.cal-cell.tod{outline:1.5px solid var(--ac2);outline-offset:-1.5px;color:var(--tx)}
+.cal-cell.lvl1{background:color-mix(in srgb,var(--ac) 42%,transparent);color:#fff;font-weight:700}
+.cal-cell.lvl2{background:linear-gradient(135deg,color-mix(in srgb,var(--ac) 75%,transparent),color-mix(in srgb,var(--ac2) 60%,transparent));color:#fff;font-weight:800;box-shadow:0 2px 8px color-mix(in srgb,var(--ac) 35%,transparent)}
+.cal-cell.lvl3{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;font-weight:800;box-shadow:0 3px 10px color-mix(in srgb,var(--ac2) 45%,transparent)}
 
 /* Selettore a tendina per Progressi */
 .dd-trigger{width:100%;justify-content:space-between;padding:13px 16px;border-radius:22px;margin-bottom:10px;text-align:left}
@@ -162,6 +192,8 @@ body{transition:background-color .4s,color .4s}.bg i{transition:opacity .6s}
 <symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
 <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4.2M16 6h3a3 3 0 0 1-3 4.2M12 13v4M8.5 20h7M10 17h4"/></symbol>
 <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+<symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 2.5c.5 3.5-2 5.5-2 8.5a3.5 3.5 0 0 0 7 0c0-1.5-.8-3-1.5-4 2.5 1.2 4.5 3.8 4.5 7a8 8 0 1 1-16 0c0-4.2 3.2-7.8 8-11.5z"/></symbol>
+<symbol id="i-cal" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 9.5h17M8 3v3.5M16 3v3.5"/></symbol>
 </defs></svg>
 <div id="main"></div>
 <div id="mini" class="g"></div>
@@ -177,13 +209,30 @@ db=db||{groups:Object.keys(SEED).map(n=>({id:uid(),name:n,ex:SEED[n].map(x=>({id
 db.theme=db.theme||"dark";db.metric=db.metric||"k";if(!db.timers||db.timers.length!==3)db.timers=[60,90,180];
 db.prof=db.prof||{h:0,w:[]};db.snd=Object.assign({t:"bip",v:80,vib:600},db.snd||{});
 const save=()=>{try{localStorage.setItem("gymer",JSON.stringify(db))}catch(e){}};
-let tab="train",V={},PE=null,PG=null,POPEN=0,EM=0,DIR="t",RT=0,BUSY=0,OPEN={prof:0,bk:0,det:0},LK={},LIM={s:99,r:999,k:999,m:3600,km:500,lv:99,ph:260,pw:400};
+let tab="train",V={},PE=null,PG=null,POPEN=0,STAG="",EM=0,DIR="t",RT=0,BUSY=0,OPEN={prof:0,bk:0,det:0,tmr:0},LK={},LIM={s:99,r:999,k:999,m:3600,km:500,lv:99,ph:260,pw:400};
 const G=()=>db.groups.find(g=>g.id===V.g),E=()=>G()&&G().ex.find(e=>e.id===V.e);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fd=t=>new Date(t).toLocaleDateString("it-IT",{day:"2-digit",month:"short"});
 const fmt=s=>{const c=Math.ceil(s);return Math.floor(c/60)+":"+String(c%60).padStart(2,"0")};
 const lbl=s=>s<60?s+" s":s%60?Math.floor(s/60)+" min "+s%60+"s":s/60+" min";
-const PAL=["#8b7bff","#27d7ff","#ff5fa2","#34d399","#fbbf24","#fb7185","#60a5fa","#f97316"],ACC=[["#8b7bff","#27d7ff"],["#ff5fa2","#fbbf24"],["#34d399","#27d7ff"],["#f97316","#fb7185"],["#60a5fa","#8b7bff"]];
+const PAL=["#8b7bff","#27d7ff","#ff5fa2","#34d399","#fbbf24","#fb7185","#60a5fa","#f97316"];
+const ACC=[
+  ["#8b7bff","#27d7ff"],
+  ["#ff5fa2","#fbbf24"],
+  ["#34d399","#27d7ff"],
+  ["#f97316","#fb7185"],
+  ["#60a5fa","#8b7bff"],
+  ["#ff3b5c","#ff8a3d"],
+  ["#a855f7","#ec4899"],
+  ["#10b981","#a3e635"],
+  ["#06b6d4","#3b82f6"],
+  ["#eab308","#f97316"],
+  ["#e879f9","#38bdf8"],
+  ["#94a3b8","#e2e8f0"]
+];
+const TAGS={w:["Warm-up","tw"],d:["Drop set","td"],s:["Superset","ts"]};
+const isWork=x=>x.tag!=="w";
+const workLogs=e=>{const ls=e.logs||[],w=ls.filter(isWork);return w.length?w:ls};
 const grad=c=>`linear-gradient(135deg,${c},color-mix(in srgb,${c} 55%,#000))`,gcol=(g,i)=>g.c||PAL[i%PAL.length];
 const bwv=()=>{const w=db.prof.w;return w.length?w[w.length-1].v:0};
 function cl(o){if(!o||o._c)return;o._c=1;o.style.pointerEvents="none";o.classList.add("out");setTimeout(()=>o.remove(),330)}
@@ -223,13 +272,17 @@ const e1=x=>x.k>0&&x.r>0&&x.r<=12?(x.r===1?x.k:x.k*(1+x.r/30)):0;
 const RV={peso:e1,corpo:x=>x.r||0,tempo:x=>x.m||0,cardio:x=>x.km||0},rv=(e,x)=>(RV[e.t||"peso"]||e1)(x);
 const PRL={peso:v=>"1RM stimato "+(+v.toFixed(1))+" kg",corpo:v=>v+" rip.",tempo:v=>v+" s",cardio:v=>v+" km"};
 const RP=v=>v?v+"/10 · "+(v<4?"facile":v<7?"medio":v<9?"duro":v<10?"molto duro":"massimale"):"non indicato";
-function sug(e){const t=e.t||"peso",l=last(e);if(!l||!l.s.length)return[];const f=n=>+n.toFixed(1);
- if(t==="peso"){const R=[...l.s].sort((a,b)=>b.k-a.k||b.r-a.r)[0],st=R.k<20?1:2.5;if(!(R.k>0))return[];
+function sug(e){
+ const t=e.t||"peso",ls=workLogs(e);if(!ls.length)return[];
+ const k=new Date(ls[ls.length-1].d).toDateString(),s=ls.filter(x=>new Date(x.d).toDateString()===k);
+ if(!s.length)return[];
+ const f=n=>+n.toFixed(1);
+ if(t==="peso"){const R=[...s].sort((a,b)=>b.k-a.k||b.r-a.r)[0],st=R.k<20?1:2.5;if(!(R.k>0))return[];
   if(R.r>=12)return[{l:f(R.k+st)+" kg × 8",v:{k:f(R.k+st),r:8},w:"Hai raggiunto 12 rip.: sali di carico"}];
   const o=[{l:R.k+" kg × "+(R.r+1),v:{k:R.k,r:R.r+1},w:"+1 ripetizione"}];if(R.r>=8)o.push({l:f(R.k+st)+" kg × "+R.r,v:{k:f(R.k+st),r:R.r},w:"+"+st+" kg"});return o}
- if(t==="corpo"){const R=[...l.s].sort((a,b)=>b.r-a.r)[0],z=R.k||0;return R.r>=15?[{l:f(z+2.5)+" kg zavorra × 10",v:{k:f(z+2.5),r:10},w:"15 rip. fatte: aggiungi zavorra"}]:[{l:R.r+1+" ripetizioni",v:{r:R.r+1},w:"+1 ripetizione"}]}
- if(t==="tempo"){const R=[...l.s].sort((a,b)=>b.m-a.m)[0];return[{l:R.m+5+" secondi",v:{m:R.m+5},w:"+5 secondi"}]}
- if(t==="cardio"){const R=[...l.s].sort((a,b)=>b.km-a.km)[0];if(!(R.km>0))return[{l:R.m+2+" minuti",v:{m:R.m+2},w:"+2 minuti"}];const k=f(R.km+.5);return[{l:k+" km",v:{km:k,m:Math.round(R.m*k/R.km)},w:"+0,5 km allo stesso ritmo"}]}
+ if(t==="corpo"){const R=[...s].sort((a,b)=>b.r-a.r)[0],z=R.k||0;return R.r>=15?[{l:f(z+2.5)+" kg zavorra × 10",v:{k:f(z+2.5),r:10},w:"15 rip. fatte: aggiungi zavorra"}]:[{l:R.r+1+" ripetizioni",v:{r:R.r+1},w:"+1 ripetizione"}]}
+ if(t==="tempo"){const R=[...s].sort((a,b)=>b.m-a.m)[0];return[{l:R.m+5+" secondi",v:{m:R.m+5},w:"+5 secondi"}]}
+ if(t==="cardio"){const R=[...s].sort((a,b)=>b.km-a.km)[0];if(!(R.km>0))return[{l:R.m+2+" minuti",v:{m:R.m+2},w:"+2 minuti"}];const km=f(R.km+.5);return[{l:km+" km",v:{km,m:Math.round(R.m*km/R.km)},w:"+0,5 km allo stesso ritmo"}]}
  return[]}
 function sugCard(e){const S=sug(e);if(!S.length)return"";return`<div class="g" style="padding:16px;margin-top:12px"><div class="row"><div class="tb" style="background:${grad("#fbbf24")};cursor:default">${I("trend")}</div><div class="sp"><b>Suggerimento di oggi</b><div class="mu">Tocca per precompilare il form</div></div></div><div class="seg" style="margin-top:12px;gap:10px">${S.map((o,i)=>`<button class="gb" data-a="sg" data-v="${i}" style="flex-direction:column;gap:2px;padding:12px 8px"><span>${o.l}</span><small style="font-weight:500;opacity:.7;font-size:11px">${o.w}</small></button>`).join("")}</div></div>`}
 function esheet(g,x){let t=x?(x.t||"peso"):"peso";const lock=!!(x&&(x.logs||[]).length),o=document.createElement("div");o.className="ov";
@@ -350,7 +403,11 @@ function sheet(t,ph,ok,val){
  document.body.appendChild(o);$("#sf").focus();
 }
 /* ---------- CHART ---------- */
-function series(e,m){const t=ty(e),M=t.M.find(x=>x[0]===m)||t.M[0],d={};(e.logs||[]).forEach(x=>{const k=new Date(x.d).toDateString();(d[k]=d[k]||[]).push(x)});return Object.keys(d).map(k=>({t:new Date(k),y:M[2](d[k])}))}
+function series(e,m){
+ const t=ty(e),M=t.M.find(x=>x[0]===m)||t.M[0],d={};
+ workLogs(e).forEach(x=>{const k=new Date(x.d).toDateString();(d[k]=d[k]||[]).push(x)});
+ return Object.keys(d).map(k=>({t:new Date(k),y:M[2](d[k])}))
+}
 function chart(pts,u){
  if(!pts.length)return`<div class="ex">Nessun dato per questo esercizio</div>`;
  const W=340,H=190,p=30,ys=pts.map(q=>q.y),mx=Math.max(...ys),mn=u?Math.min(...ys)-1:Math.min(...ys,0),r=(mx-mn)||1,n=pts.length;
@@ -360,18 +417,94 @@ function chart(pts,u){
  ${[0,.5,1].map(f=>`<line x1="${p}" x2="${W-p}" y1="${Y(mn+f*r)}" y2="${Y(mn+f*r)}" stroke="var(--gbd)" stroke-dasharray="3 5"/><text x="${p-6}" y="${Y(mn+f*r)+3}" font-size="9" text-anchor="end" fill="var(--mu)">${+(mn+f*r).toFixed(1)}</text>`).join("")}
  ${n>1?`<polygon points="${L[0][0]},${H-26} ${line} ${L[n-1][0]},${H-26}" fill="url(#ag)" class="fa"/><polyline pathLength="1" class="dl" points="${line}" fill="none" stroke="url(#lg)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>`:""}
  ${L.map((q,i)=>`<circle cx="${q[0]}" cy="${q[1]}" r="5" fill="var(--bg)" stroke="var(--ac)" stroke-width="3"/>${n<9||i%2===0?`<text x="${q[0]}" y="${H-8}" font-size="9" text-anchor="middle" fill="var(--mu)">${fd(pts[i].t)}</text>`:""}`).join("")}</svg>`}
+/* ---------- COSTANZA & CALENDARIO ---------- */
+function consistencyCard(){
+ const dayCounts={};
+ db.groups.forEach(g=>(g.ex||[]).forEach(e=>(e.logs||[]).forEach(x=>{
+  const dt=new Date(x.d);
+  const key=dt.getFullYear()+"-"+dt.getMonth()+"-"+dt.getDate();
+  dayCounts[key]=(dayCounts[key]||0)+1;
+ })));
+ const hasDay=(y,m,d)=>!!dayCounts[y+"-"+m+"-"+d];
+ const now=new Date();
+ const ty0=now.getFullYear(),tm0=now.getMonth(),td0=now.getDate();
+
+ const dow=(now.getDay()+6)%7;
+ const mon=new Date(ty0,tm0,td0-dow);
+ const wNames=["L","M","M","G","V","S","D"];
+ let weekDone=0;
+ const weekDays=[];
+ for(let i=0;i<7;i++){
+  const d=new Date(mon.getFullYear(),mon.getMonth(),mon.getDate()+i);
+  const on=hasDay(d.getFullYear(),d.getMonth(),d.getDate());
+  if(on)weekDone++;
+  weekDays.push({lbl:wNames[i],on,tod:d.getFullYear()===ty0&&d.getMonth()===tm0&&d.getDate()===td0});
+ }
+
+ let streak=0;
+ let cur=new Date(ty0,tm0,td0);
+ if(!hasDay(cur.getFullYear(),cur.getMonth(),cur.getDate())){
+  cur=new Date(ty0,tm0,td0-1);
+ }
+ while(hasDay(cur.getFullYear(),cur.getMonth(),cur.getDate())){
+  streak++;
+  cur=new Date(cur.getFullYear(),cur.getMonth(),cur.getDate()-1);
+ }
+
+ const firstDow=(new Date(ty0,tm0,1).getDay()+6)%7;
+ const daysInMonth=new Date(ty0,tm0+1,0).getDate();
+ const mTitle=now.toLocaleDateString("it-IT",{month:"long",year:"numeric"});
+ let monthDone=0;
+ let cells=wNames.map(n=>`<div class="cal-hd">${n}</div>`).join("");
+ for(let i=0;i<firstDow;i++)cells+=`<div class="cal-cell emp"></div>`;
+ for(let d=1;d<=daysInMonth;d++){
+  const cnt=dayCounts[ty0+"-"+tm0+"-"+d]||0;
+  if(cnt>0)monthDone++;
+  const lvl=cnt>=6?"lvl3":cnt>=3?"lvl2":cnt>=1?"lvl1":"";
+  const tod=(d===td0)?"tod":"";
+  cells+=`<div class="cal-cell ${lvl} ${tod}">${d}</div>`;
+ }
+
+ return`<div class="g cal-card">
+  <div class="cal-top">
+   <span class="row" style="gap:8px">${I("cal")}<b style="font-size:15px">Costanza</b></span>
+   <span class="mu" style="font-size:12px;text-transform:capitalize">${esc(mTitle)} · ${monthDone} gg</span>
+  </div>
+  <div class="cal-kpis">
+   <div class="cal-kpi">
+    <div class="tb" style="width:36px;height:36px;border-radius:12px;background:${grad("var(--ac)")};cursor:default">${I("dumbbell")}</div>
+    <div><b>${weekDone} / 7</b><span>Questa settimana</span></div>
+   </div>
+   <div class="cal-kpi">
+    <div class="tb" style="width:36px;height:36px;border-radius:12px;background:${grad("#f97316")};cursor:default">${I("flame")}</div>
+    <div><b>${streak} ${streak===1?"giorno":"giorni"}</b><span>Serie attiva</span></div>
+   </div>
+  </div>
+  <div class="wk-strip">
+   ${weekDays.map(w=>`<div class="wk-day ${w.on?"on":""} ${w.tod?"tod":""}"><span>${w.lbl}</span><i class="wk-dot"></i></div>`).join("")}
+  </div>
+  <div class="cal-grid">${cells}</div>
+ </div>`;
+}
 /* ---------- VIEWS ---------- */
 function vTrain(){
- if(V.e){const e=E(),t=ty(e),ls=e.logs||[],b1=(e.t||"peso")==="peso"?Math.max(0,...ls.map(e1)):0,l=last(e),lx=ls[ls.length-1]||{},ns=l&&new Date(l.d).toDateString()===new Date().toDateString()?l.s.length+1:1,top=l?Math.max(...l.s.map(t.one)):0;
+ if(V.e){
+  const e=E(),t=ty(e),ls=e.logs||[],wls=workLogs(e);
+  const b1=(e.t||"peso")==="peso"?Math.max(0,...wls.map(e1)):0;
+  const l=last(e),lx=ls[ls.length-1]||{};
+  const ns=l&&new Date(l.d).toDateString()===new Date().toDateString()?l.s.length+1:1;
+  const lWork=l?l.s.filter(isWork):[],topSrc=lWork.length?lWork:(l?l.s:[]);
+  const top=topSrc.length?Math.max(...topSrc.map(t.one)):0;
   return`<h1><button class="gb rd sm" data-a="back">${I("back")}</button><span>${esc(e.name)}</span><div class="tb" style="background:${grad(t.c)};cursor:default">${I(t.i)}</div></h1>
-  <div class="g card" style="cursor:default"><div class="mu">${t.n} · ultimo risultato</div><div style="font-size:38px;font-weight:800;letter-spacing:-.02em">${l?+top.toFixed(1)+t.u:"—"}</div><div class="mu">${l?l.s.map(t.fmt).join(" · ")+" · "+fd(l.d):"Registra il tuo primo risultato"}</div>${b1?`<div class="mu" style="margin-top:8px;display:flex;align-items:center;gap:8px"><span style="color:#fbbf24;display:flex">${I("trophy")}</span><span>1RM stimato <b style="color:var(--tx)">${+b1.toFixed(1)} kg</b></span></div>`:""}</div>
+  <div class="g card" style="cursor:default"><div class="mu">${t.n} · ultimo risultato</div><div style="font-size:38px;font-weight:800;letter-spacing:-.02em">${l?+top.toFixed(1)+t.u:"—"}</div><div class="mu">${l?l.s.map(x=>t.fmt(x)+(x.tag&&TAGS[x.tag]?" ("+TAGS[x.tag][0]+")":"")).join(" · ")+" · "+fd(l.d):"Registra il tuo primo risultato"}</div>${b1?`<div class="mu" style="margin-top:8px;display:flex;align-items:center;gap:8px"><span style="color:#fbbf24;display:flex">${I("trophy")}</span><span>1RM stimato <b style="color:var(--tx)">${+b1.toFixed(1)} kg</b></span></div>`:""}</div>
   ${l&&e.t!=="cardio"?`<button class="gb on" data-a="same" style="width:100%;margin-top:12px;padding:16px;border-radius:22px;font-size:16px;flex-direction:column;gap:2px"><span class="row" style="gap:8px">${I("reset")}<b>Come ultima volta</b></span><small style="font-weight:500;opacity:.85;font-size:12px">${t.fmt(lx)} · salva in un tocco</small></button>`:""}${sugCard(e)}${e.t==="cardio"?liveCard():""}<h2>${e.t==="cardio"?"Inserimento manuale":t.nw}</h2><div class="g" style="padding:16px"><div class="fl">${t.f.map(f=>`<div class="nr"><label>${f[1]}</label><div class="step"><button class="gb sm" data-a="st" data-f="${f[0]}" data-d="-${f[2]}">${I("minus")}</button><input id="${f[0]}" type="number" inputmode="${Number.isInteger(f[2])?"numeric":"decimal"}" value="${f[0]==="s"?ns:(lx[f[0]]!==undefined?lx[f[0]]:f[3])}"><button class="gb sm" data-a="st" data-f="${f[0]}" data-d="${f[2]}">${I("plus")}</button></div></div>`).join("")}</div>
+  ${e.t!=="cardio"?`<div class="tag-row">${[["","Normale"],["w","Warm-up"],["d","Drop set"],["s","Superset"]].map(tg=>`<button type="button" class="gb ${STAG===tg[0]?"on":""}" data-a="stag" data-v="${tg[0]}">${tg[1]}</button>`).join("")}</div>`:""}
   <button class="gb acc ${OPEN.det?"open":""}" data-a="tg" data-v="det" style="margin-bottom:4px"><span class="row" style="gap:10px">${I("pulse")}<b>Sforzo e note</b></span><span class="mu sp" style="text-align:right;font-weight:500">facoltativo</span>${I("chev","cv")}</button>
   <div class="col ${OPEN.det?"open":""}" id="c-det"><div><div style="padding-top:8px"><div class="rr"><div class="row"><b style="font-size:15px">Sforzo (RPE)</b><span class="sp"></span><span class="mu" id="rpl">non indicato</span></div><input type="range" id="rpe" min="0" max="10" step="1" value="0"></div><input id="nt" maxlength="80" placeholder="Nota (es. buona tecnica)" style="text-align:left;margin-bottom:12px"></div></div></div>
   <button class="gb on" data-a="log" style="width:100%;padding:14px">${I("check")} ${t.sv}</button></div>
-  <h2>Storico</h2>${[...ls].reverse().slice(0,12).map(x=>`<div class="g item row"><span class="mu" style="width:56px">${fd(x.d)}</span><span class="sp"><b>${t.fmt(x)}</b>${x.s?` <span class="mu">serie ${x.s}</span>`:""}${x.p?` <span class="mu">· RPE ${x.p}</span>`:""}${x.n?`<div class="mu" style="font-size:12px;margin-top:2px">${esc(x.n)}</div>`:""}</span>${x.pr?`<span style="color:#fbbf24;display:flex">${I("trophy")}</span>`:""}${x.route?`<div style="width:76px;flex:none">${rsvg(x.route,76,56)}</div>`:""}<button class="gb sm" data-a="dlog" data-v="${x.d}">${I("x")}</button></div>`).join("")||`<div class="ex">Ancora nessun dato</div>`}`}
+  <h2>Storico</h2>${[...ls].reverse().slice(0,12).map(x=>`<div class="g item row"><span class="mu" style="width:56px">${fd(x.d)}</span><span class="sp"><b>${t.fmt(x)}</b>${x.tag&&TAGS[x.tag]?`<span class="tbadge ${TAGS[x.tag][1]}">${TAGS[x.tag][0]}</span>`:""}${x.s?` <span class="mu">serie ${x.s}</span>`:""}${x.p?` <span class="mu">· RPE ${x.p}</span>`:""}${x.n?`<div class="mu" style="font-size:12px;margin-top:2px">${esc(x.n)}</div>`:""}</span>${x.pr?`<span style="color:#fbbf24;display:flex">${I("trophy")}</span>`:""}${x.route?`<div style="width:76px;flex:none">${rsvg(x.route,76,56)}</div>`:""}<button class="gb sm" data-a="dlog" data-v="${x.d}">${I("x")}</button></div>`).join("")||`<div class="ex">Ancora nessun dato</div>`}`}
  if(V.g){const g=G();return`<h1><button class="gb rd sm" data-a="back">${I("back")}</button><span>${esc(g.name)}</span><button class="gb sm" data-a="adde">${I("plus")}</button>${EM?`<button class="gb sm" data-a="eg" data-v="${g.id}">${I("palette")}</button>`:""}<button class="gb sm ${EM?"on":""}" data-a="em">${I(EM?"check":"edit")}</button></h1>
-  ${g.ex.map(e=>{const l=last(e);return`<div class="g item row"><div class="tb" data-a="${EM?"rne":"ex"}" data-v="${e.id}" style="background:${grad(ty(e).c)}">${I(ty(e).i)}</div><div class="sp" data-a="${EM?"rne":"ex"}" data-v="${e.id}" style="cursor:pointer"><b style="font-size:16px">${esc(e.name)}</b><div class="mu">${l?`${ty(e).n} · ${+Math.max(...l.s.map(ty(e).one)).toFixed(1)}${ty(e).u} · ${fd(l.d)}`:ty(e).n+" · nessun dato"}</div></div>${EM?`<button class="gb sm" data-a="rne" data-v="${e.id}">${I("edit")}</button><button class="gb sm" data-a="dele" data-v="${e.id}">${I("trash")}</button>`:""}</div>`}).join("")||`<div class="ex">Nessun esercizio. Tocca + in alto per aggiungerne uno.</div>`}
+  ${g.ex.map(e=>{const l=last(e),lw=l?l.s.filter(isWork):[],ts=lw.length?lw:(l?l.s:[]);return`<div class="g item row"><div class="tb" data-a="${EM?"rne":"ex"}" data-v="${e.id}" style="background:${grad(ty(e).c)}">${I(ty(e).i)}</div><div class="sp" data-a="${EM?"rne":"ex"}" data-v="${e.id}" style="cursor:pointer"><b style="font-size:16px">${esc(e.name)}</b><div class="mu">${l?`${ty(e).n} · ${+Math.max(...ts.map(ty(e).one)).toFixed(1)}${ty(e).u} · ${fd(l.d)}`:ty(e).n+" · nessun dato"}</div></div>${EM?`<button class="gb sm" data-a="rne" data-v="${e.id}">${I("edit")}</button><button class="gb sm" data-a="dele" data-v="${e.id}">${I("trash")}</button>`:""}</div>`}).join("")||`<div class="ex">Nessun esercizio. Tocca + in alto per aggiungerne uno.</div>`}
   `}
  return`<h1><span>Allenamento</span><button class="gb sm" data-a="addg">${I("plus")}</button><button class="gb sm ${EM?"on":""}" data-a="em">${I(EM?"check":"edit")}</button></h1><div class="grid fill">${db.groups.map((g,i)=>`<div class="g card" data-a="${EM?"eg":"grp"}" data-v="${g.id}">${EM?`<button class="gb sm" data-a="dg" data-v="${g.id}" style="position:absolute;top:10px;right:10px">${I("trash")}</button>`:""}<div class="badge" style="background:${grad(gcol(g,i))}">${I("dumbbell")}</div><div><b style="font-size:17px">${esc(g.name)}</b><div class="mu">${EM?"Tocca per modificare":g.ex.length+" esercizi"}</div></div></div>`).join("")}</div>`}
 function vTimer(){
@@ -383,9 +516,8 @@ function vTimer(){
  <button class="gb" data-a="cust" style="width:100%">${I("clock")} Personalizzato</button></div>`}
 function vProg(){
  const grps=db.groups.filter(g=>g.ex.length>0);
- if(!grps.length)return`<h1><span>Progressioni</span></h1><div class="ex">Aggiungi un esercizio per iniziare</div>`;
+ if(!grps.length)return`<h1><span>Progressioni</span></h1>${consistencyCard()}<div class="ex">Aggiungi un esercizio per iniziare</div>`;
 
- // Risoluzione esercizio e gruppo attivo
  let curG=null,curE=null;
  if(PE){
   for(const g of grps){const f=g.ex.find(x=>x.id===PE);if(f){curG=g;curE=f;break}}
@@ -396,18 +528,15 @@ function vProg(){
  if(!curE){curG=grps[0];curE=curG.ex[0]}
  PE=curE.id;
 
- // Gruppo selezionato nella tendina (può differire temporaneamente da curG mentre l'utente sfoglia)
  const selG=grps.find(g=>g.id===PG)||curG;
  PG=selG.id;
- const selGIdx=db.groups.indexOf(selG);
 
- const t=ty(curE),ls=curE.logs||[];
+ const t=ty(curE),ls=curE.logs||[],wls=workLogs(curE);
  const M=t.M.find(x=>x[0]===db.metric)||t.M[0],pts=series(curE,M[0]);
- const pr=ls.length?Math.max(...ls.map(t.one)):0;
+ const pr=wls.length?Math.max(...wls.map(t.one)):0;
  const ses=new Set(ls.map(x=>new Date(x.d).toDateString())).size;
- const l=last(curE);
+ const l=last(curE),lw=l?l.s.filter(isWork):[],topSrc=lw.length?lw:(l?l.s:[]);
 
- // Delta progresso tra prima e ultima sessione
  let deltaHtml="";
  if(pts.length>1){
   const diff=+(pts[pts.length-1].y-pts[0].y).toFixed(1);
@@ -415,6 +544,7 @@ function vProg(){
  }
 
  return`<div class="fillp"><h1><span>Progressioni</span></h1>
+ ${consistencyCard()}
 
  <!-- Trigger tendina gerarchica -->
  <button class="gb dd-trigger ${POPEN?"open":""}" data-a="ptog">
@@ -458,25 +588,27 @@ function vProg(){
  <h2>Riepilogo</h2>
  <div class="pr">
   <div class="g gb" style="border-radius:18px"><b>${pr?+pr.toFixed(1)+t.u:"—"}</b><small>Record</small></div>
-  <div class="g gb" style="border-radius:18px"><b>${l?+Math.max(...l.s.map(t.one)).toFixed(1)+t.u:"—"}</b><small>Ultimo</small></div>
+  <div class="g gb" style="border-radius:18px"><b>${topSrc.length?+Math.max(...topSrc.map(t.one)).toFixed(1)+t.u:"—"}</b><small>Ultimo</small></div>
   <div class="g gb" style="border-radius:18px"><b>${ses}</b><small>Sessioni</small></div>
  </div>
 
  <div class="sgrid">
-  <div class="g scard"><span class="mu" style="font-size:11px">${t.tot[0]}</span><b>${ls.length?t.tot[1](ls):"—"}</b></div>
-  ${(curE.t||"peso")==="peso"&&ls.some(x=>e1(x)>0)?`<div class="g scard"><span class="mu" style="font-size:11px">1RM stimato</span><b>${+Math.max(...ls.map(e1)).toFixed(1)} kg</b></div>`:""}
+  <div class="g scard"><span class="mu" style="font-size:11px">${t.tot[0]}</span><b>${wls.length?t.tot[1](wls):"—"}</b></div>
+  ${(curE.t||"peso")==="peso"&&wls.some(x=>e1(x)>0)?`<div class="g scard"><span class="mu" style="font-size:11px">1RM stimato</span><b>${+Math.max(...wls.map(e1)).toFixed(1)} kg</b></div>`:""}
   ${ls.some(x=>x.pr)?`<div class="g scard"><span class="mu" style="font-size:11px">Record battuti</span><b>${ls.filter(x=>x.pr).length}</b></div>`:""}
   ${bwv()&&pr&&(curE.t||"peso")==="peso"?`<div class="g scard"><span class="mu" style="font-size:11px">Rapporto peso</span><b>${(pr/bwv()).toFixed(2)}× BW</b></div>`:""}
  </div></div>`}
-function vSet(){const P=db.prof,w=bwv(),bmi=P.h&&w?w/Math.pow(P.h/100,2):0;return`<h1><span>Profilo</span></h1>
+function vSet(){const P=db.prof,w=bwv(),bmi=P.h&&w?w/Math.pow(P.h/100,2):0,curAc=ACC[db.ac||0]?(db.ac||0):0;return`<h1><span>Profilo</span></h1>
  <button class="gb acc ${OPEN.prof?"open":""}" data-a="tg" data-v="prof"><span class="row" style="gap:10px">${I("user")}<b>Dati fisici</b></span><span class="mu sp" style="text-align:right;font-weight:500">${w?w+" kg":"—"} · ${P.h?P.h+" cm":"—"}</span>${I("chev","cv")}</button>
  <div class="col ${OPEN.prof?"open":""}" id="c-prof"><div><div class="g" style="padding:16px;margin-top:12px"><div class="f2"><div><label>Altezza (cm)</label><input id="ph" type="number" inputmode="numeric" value="${P.h||""}" placeholder="175"></div><div><label>Peso (kg)</label><input id="pw" type="number" inputmode="decimal" step="0.1" value="${w||""}" placeholder="70"></div></div><button class="gb on" data-a="prof" style="width:100%">${I("check")} Salva misure</button></div>
  <div class="pr" style="margin-top:12px"><div class="g gb" style="border-radius:18px"><b>${w?w+" kg":"—"}</b><small>Peso</small></div><div class="g gb" style="border-radius:18px"><b>${P.h?P.h+" cm":"—"}</b><small>Altezza</small></div><div class="g gb" style="border-radius:18px"><b>${bmi?bmi.toFixed(1):"—"}</b><small>BMI</small></div></div>
  ${P.w.length>1?`<div class="g" style="padding:14px 10px 6px;margin-bottom:6px"><div class="mu" style="margin:0 8px 6px">Andamento peso (kg)</div>${chart(P.w.map(x=>({t:new Date(x.d),y:x.v})),1)}</div>`:`<div class="mu" style="text-align:center">Salva il peso in giorni diversi per vedere l’andamento</div>`}</div></div>
  <h1 style="margin-top:28px"><span>Impostazioni</span></h1>
- <h2>Colore app</h2><div class="sw8" style="justify-content:flex-start">${ACC.map((c,i)=>`<button class="sw ${(db.ac||0)===i?"sel":""}" data-a="acc" data-v="${i}" style="background:linear-gradient(135deg,${c[0]},${c[1]})"></button>`).join("")}</div>
+ <h2>Colore app</h2><div class="sw8" style="justify-content:flex-start">${ACC.map((c,i)=>`<button class="sw ${curAc===i?"sel":""}" data-a="acc" data-v="${i}" style="background:linear-gradient(135deg,${c[0]},${c[1]})"></button>`).join("")}</div>
  <h2>Tema</h2><div class="seg"><button class="gb ${db.theme==="dark"?"on":""}" data-a="th" data-v="dark">${I("moon")} Scuro</button><button class="gb ${db.theme==="light"?"on":""}" data-a="th" data-v="light">${I("sun")} Chiaro</button></div>
- <h2>Tempi rapidi predefiniti</h2>${db.timers.map((s,i)=>`<div class="g item row" data-a="tset" data-v="${i}" style="cursor:pointer">${I("clock")}<span class="sp">Preset ${i+1}</span><b>${lbl(s)}</b></div>`).join("")}
+ <div style="margin-top:18px"></div>
+ <button class="gb acc ${OPEN.tmr?"open":""}" data-a="tg" data-v="tmr"><span class="row" style="gap:10px">${I("clock")}<b>Tempi rapidi predefiniti</b></span><span class="mu sp" style="text-align:right;font-weight:500">${db.timers.map(lbl).join(" · ")}</span>${I("chev","cv")}</button>
+ <div class="col ${OPEN.tmr?"open":""}" id="c-tmr"><div><div style="padding-top:12px">${db.timers.map((s,i)=>`<div class="g item row" data-a="tset" data-v="${i}" style="cursor:pointer">${I("clock")}<span class="sp">Preset ${i+1}</span><b>${lbl(s)}</b></div>`).join("")}</div></div></div>
  <h2>Suoni e vibrazione</h2><div class="g" style="padding:16px"><div class="snd">${Object.keys(SND).map(k=>`<button class="gb ${db.snd.t===k?"on":""}" data-a="snd" data-v="${k}">${SND[k].n}</button>`).join("")}</div>
  <div class="rr"><div class="row"><b style="font-size:15px">Volume allarme</b><span class="sp"></span><span class="mu" id="svl">${db.snd.v}%</span></div><input type="range" id="sv" min="0" max="100" step="5" value="${db.snd.v}"></div>
  <div class="rr"><div class="row"><b style="font-size:15px">Durata vibrazione</b><span class="sp"></span><span class="mu" id="sdl">${db.snd.vib>0?db.snd.vib+" ms":"Off"}</span></div><input type="range" id="sd" min="0" max="2000" step="100" value="${db.snd.vib}"></div>
@@ -487,7 +619,7 @@ function vSet(){const P=db.prof,w=bwv(),bmi=P.h&&w?w/Math.pow(P.h/100,2):0;retur
  <div class="col ${OPEN.bk?"open":""}" id="c-bk"><div><div class="g" style="padding:14px;margin-top:12px"><textarea id="bk" rows="4" placeholder="Il JSON appare qui. Incolla qui per importare."></textarea><div class="seg" style="margin-top:10px"><button class="gb" data-a="exp">${I("down")} Esporta</button><button class="gb on" data-a="imp">${I("up")} Importa</button></div><input id="fi" type="file" accept=".json,application/json" style="margin-top:10px;text-align:left"></div></div></div>`}
 const TABS=[["train","dumbbell","Allena"],["timer","timer","Timer"],["prog","trend","Progressi"],["set","user","Profilo"]];
 function render(keep){
- document.documentElement.dataset.theme=db.theme;{const A=ACC[db.ac||0],s=document.documentElement.style;s.setProperty("--ac",A[0]);s.setProperty("--ac2",A[1]);if(NATIVE&&GT&&window.__cc!==A[0]+A[1]){window.__cc=A[0]+A[1];try{GT.setColors({a:A[0],b:A[1]})}catch(e){}}}
+ document.documentElement.dataset.theme=db.theme;{const A=ACC[db.ac||0]||ACC[0],s=document.documentElement.style;s.setProperty("--ac",A[0]);s.setProperty("--ac2",A[1]);if(NATIVE&&GT&&window.__cc!==A[0]+A[1]){window.__cc=A[0]+A[1];try{GT.setColors({a:A[0],b:A[1]})}catch(e){}}}
  const m=$("#main");m.innerHTML={train:vTrain,timer:vTimer,prog:vProg,set:vSet}[tab]();
  if(!keep){m.className="e p"+DIR;clearTimeout(RT);RT=setTimeout(()=>{m.className=""},1000)}
  navUpd();mini();
@@ -497,12 +629,13 @@ const SLOW={log:1,prof:1,astart:1,aend:1,imp:1,exp:1};
 document.addEventListener("click",ev=>{
  const el=ev.target.closest("[data-a]");if(!el)return;const a=el.dataset.a,v=el.dataset.v,g=G(),e=E();if(a!=="log"&&a!=="same")tap();
  if(SLOW[a]){const n=Date.now();if(n-(LK[a]||0)<900)return;LK[a]=n}
- if(a==="tab"){if(v===tab&&!(v==="train"&&(V.g||V.e)))return;const ni=TABS.findIndex(t=>t[0]===v),oi=TABS.findIndex(t=>t[0]===tab);goto(ni>=oi?"f":"b",()=>{tab=v;EM=0;POPEN=0;OPEN.prof=OPEN.bk=OPEN.det=0;if(v==="train")V={}})}
- else if(a==="grp")goto("f",()=>{EM=0;V={g:v}});else if(a==="ex")goto("f",()=>{OPEN.det=0;V={g:V.g,e:v}});
- else if(a==="back")goto("b",()=>{EM=0;V=V.e?{g:V.g}:{}});
+ if(a==="tab"){if(v===tab&&!(v==="train"&&(V.g||V.e)))return;const ni=TABS.findIndex(t=>t[0]===v),oi=TABS.findIndex(t=>t[0]===tab);goto(ni>=oi?"f":"b",()=>{tab=v;EM=0;POPEN=0;STAG="";OPEN.prof=OPEN.bk=OPEN.det=OPEN.tmr=0;if(v==="train")V={}})}
+ else if(a==="grp")goto("f",()=>{EM=0;V={g:v}});else if(a==="ex")goto("f",()=>{OPEN.det=0;STAG="";V={g:V.g,e:v}});
+ else if(a==="back")goto("b",()=>{EM=0;STAG="";V=V.e?{g:V.g}:{}});
  else if(a==="addg"){if(db.groups.length>=24)toast("Limite di 24 gruppi raggiunto");else gsheet(null)}else if(a==="eg")gsheet(db.groups.find(x=>x.id===v));
  else if(a==="em"){EM=EM?0:1;render(true)}
  else if(a==="tg"){OPEN[v]=!OPEN[v];el.classList.toggle("open",OPEN[v]);const c=$("#c-"+v);if(c)c.classList.toggle("open",OPEN[v])}
+ else if(a==="stag"){STAG=v;render(true)}
  else if(a==="ak"){AK=v;render(true)}
  else if(a==="sg"){const o=sug(e)[+v];if(o){Object.keys(o.v).forEach(k=>{const i=$("#"+k);if(i)i.value=o.v[k]});toast("Impostato: "+o.l)}}
  else if(a==="snd"){db.snd.t=v;save();beep(v);render(true)}else if(a==="stest"){beep();vib()}else if(a==="astart")astart();else if(a==="apause")apause();else if(a==="aend")aend();else if(a==="amin")amin();else if(a==="ashow")ashow();
@@ -514,10 +647,10 @@ document.addEventListener("click",ev=>{
  else if(a==="rne")esheet(g,g.ex.find(i=>i.id===v));
  else if(a==="dele")del("Esercizio eliminato",()=>{g.ex=g.ex.filter(x=>x.id!==v)});
  else if(a==="st"){const i=$("#"+el.dataset.f);i.value=Math.min(LIM[el.dataset.f]||999,Math.max(0,+((+i.value)+(+el.dataset.d)).toFixed(1)))}
- else if(a==="log"){const t=ty(e),o={d:Date.now()};let bad=0;t.f.forEach(f=>{const x=+$("#"+f[0]).value||0;if(x<0||x>(LIM[f[0]]||999))bad=1;o[f[0]]=Math.round(x*100)/100});if(bad){toast("Controlla i valori inseriti");return}if(!(o[t.req]>0))return;const td=new Date().toDateString();if(e.logs.filter(x=>new Date(x.d).toDateString()===td).length>=60){toast("Limite giornaliero raggiunto (60)");return}const rp=+($("#rpe")||{}).value,nt=(($("#nt")||{}).value||"").trim().slice(0,80);if(rp)o.p=rp;if(nt)o.n=nt;
-  const pv=e.logs.map(x=>rv(e,x)),nv=rv(e,o),isPR=pv.length>0&&nv>0&&nv>Math.max(...pv);if(isPR)o.pr=1;
-  e.logs.push(o);save();if(isPR){toast("Nuovo record! "+(PRL[e.t||"peso"]||PRL.peso)(nv),"trophy");beep("campanello");vib()}else{toast("Salvato");tap([30,40,30])}render(true)}
- else if(a==="same"){const t=ty(e),lx=(e.logs||[])[(e.logs||[]).length-1];if(!lx)return;t.f.forEach(f=>{const i=$("#"+f[0]);if(i&&f[0]!=="s"&&lx[f[0]]!==undefined)i.value=lx[f[0]]});const r=$("#rpe"),n=$("#nt");if(r)r.value=0;if(n)n.value="";const b=$("[data-a=log]");if(b)b.click()}
+ else if(a==="log"){const t=ty(e),o={d:Date.now()};let bad=0;t.f.forEach(f=>{const x=+$("#"+f[0]).value||0;if(x<0||x>(LIM[f[0]]||999))bad=1;o[f[0]]=Math.round(x*100)/100});if(bad){toast("Controlla i valori inseriti");return}if(!(o[t.req]>0))return;const td=new Date().toDateString();if(e.logs.filter(x=>new Date(x.d).toDateString()===td).length>=60){toast("Limite giornaliero raggiunto (60)");return}const rp=+($("#rpe")||{}).value,nt=(($("#nt")||{}).value||"").trim().slice(0,80);if(rp)o.p=rp;if(nt)o.n=nt;if(e.t!=="cardio"&&STAG)o.tag=STAG;
+  const pv=workLogs(e).map(x=>rv(e,x)),nv=rv(e,o),isPR=o.tag!=="w"&&pv.length>0&&nv>0&&nv>Math.max(...pv);if(isPR)o.pr=1;
+  e.logs.push(o);STAG="";save();if(isPR){toast("Nuovo record! "+(PRL[e.t||"peso"]||PRL.peso)(nv),"trophy");beep("campanello");vib()}else{toast("Salvato");tap([30,40,30])}render(true)}
+ else if(a==="same"){const t=ty(e),lx=(e.logs||[])[(e.logs||[]).length-1];if(!lx)return;t.f.forEach(f=>{const i=$("#"+f[0]);if(i&&f[0]!=="s"&&lx[f[0]]!==undefined)i.value=lx[f[0]]});STAG=(lx.tag&&lx.tag!=="w")?lx.tag:"";const r=$("#rpe"),n=$("#nt");if(r)r.value=0;if(n)n.value="";const b=$("[data-a=log]");if(b)b.click()}
  else if(a==="dlog")del("Serie eliminata",()=>{e.logs=e.logs.filter(x=>x.d!==+v)});
  else if(a==="ptog"){POPEN=POPEN?0:1;if(POPEN){const g0=db.groups.find(gr=>gr.ex.some(x=>x.id===PE));if(g0)PG=g0.id}render(true)}
  else if(a==="pg"){PG=v;render(true)}
