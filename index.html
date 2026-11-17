@@ -40,7 +40,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Ro
 .ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
 h1{font-size:30px;font-weight:800;letter-spacing:-.02em;margin:6px 0 16px;display:flex;align-items:center;gap:10px}
 h1 span{flex:1}
-h2{font-size:12px;color:var(--mu);margin:22px 4px 8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+h2{font-size:12px;color:var(--mu);margin:20px 4px 8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .card{padding:16px;cursor:pointer;transition:transform .18s}.card:active{transform:scale(.96)}
 .row{display:flex;align-items:center;gap:10px}.sp{flex:1}
@@ -94,6 +94,7 @@ label{font-size:12px;color:var(--mu);display:block;margin-bottom:5px;text-align:
 .sw8{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:18px}
 .sw{width:38px;height:38px;border-radius:50%;border:2px solid var(--gbd);cursor:pointer;padding:0;box-shadow:inset 0 1px 2px rgba(255,255,255,.55);transition:transform .2s}
 .sw.sel{transform:scale(1.15);outline:3px solid var(--tx);outline-offset:2px}
+.sw-pill{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--gbd);flex:none;box-shadow:inset 0 1px 1px rgba(255,255,255,.5)}
 
 /* Tag serie (Warm-up / Drop set / Superset) */
 .tag-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px}
@@ -103,10 +104,12 @@ label{font-size:12px;color:var(--mu);display:block;margin-bottom:5px;text-align:
 .tbadge.td{background:rgba(255,95,162,.18);color:#ff5fa2}
 .tbadge.ts{background:color-mix(in srgb,var(--ac2) 20%,transparent);color:var(--ac2)}
 
-/* Costanza e Calendario in Progressi */
-.cal-card{padding:15px 16px;margin-bottom:14px}
-.cal-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
-.cal-kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+/* Costanza compatta e Calendario apribile in Progressi */
+.cal-card{padding:14px 16px;margin-bottom:12px;overflow:hidden}
+.cal-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;cursor:pointer;user-select:none}
+.cal-head .cv{transition:transform .45s cubic-bezier(.3,1.3,.5,1)}
+.cal-head.open .cv{transform:rotate(180deg)}
+.cal-kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .cal-kpi{background:var(--g2);border:1px solid var(--gbd);border-radius:16px;padding:10px 12px;display:flex;align-items:center;gap:10px}
 .cal-kpi b{font-size:17px;display:block;line-height:1.15}
 .cal-kpi span{font-size:11px;color:var(--mu)}
@@ -152,7 +155,7 @@ label{font-size:12px;color:var(--mu);display:block;margin-bottom:5px;text-align:
 .col{display:grid;grid-template-rows:0fr;opacity:0;visibility:hidden;transition:grid-template-rows .45s cubic-bezier(.2,.8,.2,1),opacity .3s,visibility 0s .45s}
 .col.open{grid-template-rows:1fr;opacity:1;visibility:visible;transition:grid-template-rows .45s cubic-bezier(.2,.8,.2,1),opacity .35s .05s,visibility 0s}
 .col>div{overflow:hidden;min-height:0;margin:-24px;padding:24px}.col:not(.open)>div{pointer-events:none}
-.acc{width:100%;justify-content:space-between;padding:15px 16px;border-radius:20px;margin-top:4px}.acc .cv{transition:transform .45s cubic-bezier(.3,1.3,.5,1)}.acc.open .cv{transform:rotate(180deg)}
+.acc{width:100%;justify-content:space-between;padding:15px 16px;border-radius:20px;margin-top:10px}.acc .cv{transition:transform .45s cubic-bezier(.3,1.3,.5,1)}.acc.open .cv{transform:rotate(180deg)}
 .dl{stroke-dasharray:1;stroke-dashoffset:1;animation:dr 1.1s .15s cubic-bezier(.3,.7,.2,1) forwards}@keyframes dr{to{stroke-dashoffset:0}}.fa{animation:fade .9s .45s both}
 input,textarea{transition:border-color .25s,box-shadow .25s}input:focus,textarea:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 30%,transparent)}
 body{transition:background-color .4s,color .4s}.bg i{transition:opacity .6s}
@@ -209,7 +212,7 @@ db=db||{groups:Object.keys(SEED).map(n=>({id:uid(),name:n,ex:SEED[n].map(x=>({id
 db.theme=db.theme||"dark";db.metric=db.metric||"k";if(!db.timers||db.timers.length!==3)db.timers=[60,90,180];
 db.prof=db.prof||{h:0,w:[]};db.snd=Object.assign({t:"bip",v:80,vib:600},db.snd||{});
 const save=()=>{try{localStorage.setItem("gymer",JSON.stringify(db))}catch(e){}};
-let tab="train",V={},PE=null,PG=null,POPEN=0,STAG="",EM=0,DIR="t",RT=0,BUSY=0,OPEN={prof:0,bk:0,det:0,tmr:0},LK={},LIM={s:99,r:999,k:999,m:3600,km:500,lv:99,ph:260,pw:400};
+let tab="train",V={},PE=null,PG=null,POPEN=0,STAG="",EM=0,DIR="t",RT=0,BUSY=0,OPEN={prof:0,bk:0,det:0,tmr:0,col:0,snd:0,cal:0},LK={},LIM={s:99,r:999,k:999,m:3600,km:500,lv:99,ph:260,pw:400};
 const G=()=>db.groups.find(g=>g.id===V.g),E=()=>G()&&G().ex.find(e=>e.id===V.e);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fd=t=>new Date(t).toLocaleDateString("it-IT",{day:"2-digit",month:"short"});
@@ -417,7 +420,7 @@ function chart(pts,u){
  ${[0,.5,1].map(f=>`<line x1="${p}" x2="${W-p}" y1="${Y(mn+f*r)}" y2="${Y(mn+f*r)}" stroke="var(--gbd)" stroke-dasharray="3 5"/><text x="${p-6}" y="${Y(mn+f*r)+3}" font-size="9" text-anchor="end" fill="var(--mu)">${+(mn+f*r).toFixed(1)}</text>`).join("")}
  ${n>1?`<polygon points="${L[0][0]},${H-26} ${line} ${L[n-1][0]},${H-26}" fill="url(#ag)" class="fa"/><polyline pathLength="1" class="dl" points="${line}" fill="none" stroke="url(#lg)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>`:""}
  ${L.map((q,i)=>`<circle cx="${q[0]}" cy="${q[1]}" r="5" fill="var(--bg)" stroke="var(--ac)" stroke-width="3"/>${n<9||i%2===0?`<text x="${q[0]}" y="${H-8}" font-size="9" text-anchor="middle" fill="var(--mu)">${fd(pts[i].t)}</text>`:""}`).join("")}</svg>`}
-/* ---------- COSTANZA & CALENDARIO ---------- */
+/* ---------- COSTANZA & CALENDARIO APRIBILE ---------- */
 function consistencyCard(){
  const dayCounts={};
  db.groups.forEach(g=>(g.ex||[]).forEach(e=>(e.logs||[]).forEach(x=>{
@@ -453,7 +456,7 @@ function consistencyCard(){
 
  const firstDow=(new Date(ty0,tm0,1).getDay()+6)%7;
  const daysInMonth=new Date(ty0,tm0+1,0).getDate();
- const mTitle=now.toLocaleDateString("it-IT",{month:"long",year:"numeric"});
+ const mTitle=now.toLocaleDateString("it-IT",{month:"long"});
  let monthDone=0;
  let cells=wNames.map(n=>`<div class="cal-hd">${n}</div>`).join("");
  for(let i=0;i<firstDow;i++)cells+=`<div class="cal-cell emp"></div>`;
@@ -466,9 +469,10 @@ function consistencyCard(){
  }
 
  return`<div class="g cal-card">
-  <div class="cal-top">
+  <div class="cal-head ${OPEN.cal?"open":""}" data-a="tg" data-v="cal">
    <span class="row" style="gap:8px">${I("cal")}<b style="font-size:15px">Costanza</b></span>
-   <span class="mu" style="font-size:12px;text-transform:capitalize">${esc(mTitle)} · ${monthDone} gg</span>
+   <span class="mu sp" style="text-align:right;font-size:12px;text-transform:capitalize">${esc(mTitle)} · ${monthDone} gg</span>
+   ${I("chev","cv")}
   </div>
   <div class="cal-kpis">
    <div class="cal-kpi">
@@ -480,10 +484,12 @@ function consistencyCard(){
     <div><b>${streak} ${streak===1?"giorno":"giorni"}</b><span>Serie attiva</span></div>
    </div>
   </div>
-  <div class="wk-strip">
-   ${weekDays.map(w=>`<div class="wk-day ${w.on?"on":""} ${w.tod?"tod":""}"><span>${w.lbl}</span><i class="wk-dot"></i></div>`).join("")}
-  </div>
-  <div class="cal-grid">${cells}</div>
+  <div class="col ${OPEN.cal?"open":""}" id="c-cal"><div><div style="padding-top:12px">
+   <div class="wk-strip">
+    ${weekDays.map(w=>`<div class="wk-day ${w.on?"on":""} ${w.tod?"tod":""}"><span>${w.lbl}</span><i class="wk-dot"></i></div>`).join("")}
+   </div>
+   <div class="cal-grid">${cells}</div>
+  </div></div></div>
  </div>`;
 }
 /* ---------- VIEWS ---------- */
@@ -499,7 +505,7 @@ function vTrain(){
   <div class="g card" style="cursor:default"><div class="mu">${t.n} · ultimo risultato</div><div style="font-size:38px;font-weight:800;letter-spacing:-.02em">${l?+top.toFixed(1)+t.u:"—"}</div><div class="mu">${l?l.s.map(x=>t.fmt(x)+(x.tag&&TAGS[x.tag]?" ("+TAGS[x.tag][0]+")":"")).join(" · ")+" · "+fd(l.d):"Registra il tuo primo risultato"}</div>${b1?`<div class="mu" style="margin-top:8px;display:flex;align-items:center;gap:8px"><span style="color:#fbbf24;display:flex">${I("trophy")}</span><span>1RM stimato <b style="color:var(--tx)">${+b1.toFixed(1)} kg</b></span></div>`:""}</div>
   ${l&&e.t!=="cardio"?`<button class="gb on" data-a="same" style="width:100%;margin-top:12px;padding:16px;border-radius:22px;font-size:16px;flex-direction:column;gap:2px"><span class="row" style="gap:8px">${I("reset")}<b>Come ultima volta</b></span><small style="font-weight:500;opacity:.85;font-size:12px">${t.fmt(lx)} · salva in un tocco</small></button>`:""}${sugCard(e)}${e.t==="cardio"?liveCard():""}<h2>${e.t==="cardio"?"Inserimento manuale":t.nw}</h2><div class="g" style="padding:16px"><div class="fl">${t.f.map(f=>`<div class="nr"><label>${f[1]}</label><div class="step"><button class="gb sm" data-a="st" data-f="${f[0]}" data-d="-${f[2]}">${I("minus")}</button><input id="${f[0]}" type="number" inputmode="${Number.isInteger(f[2])?"numeric":"decimal"}" value="${f[0]==="s"?ns:(lx[f[0]]!==undefined?lx[f[0]]:f[3])}"><button class="gb sm" data-a="st" data-f="${f[0]}" data-d="${f[2]}">${I("plus")}</button></div></div>`).join("")}</div>
   ${e.t!=="cardio"?`<div class="tag-row">${[["","Normale"],["w","Warm-up"],["d","Drop set"],["s","Superset"]].map(tg=>`<button type="button" class="gb ${STAG===tg[0]?"on":""}" data-a="stag" data-v="${tg[0]}">${tg[1]}</button>`).join("")}</div>`:""}
-  <button class="gb acc ${OPEN.det?"open":""}" data-a="tg" data-v="det" style="margin-bottom:4px"><span class="row" style="gap:10px">${I("pulse")}<b>Sforzo e note</b></span><span class="mu sp" style="text-align:right;font-weight:500">facoltativo</span>${I("chev","cv")}</button>
+  <button class="gb acc ${OPEN.det?"open":""}" data-a="tg" data-v="det" style="margin-top:0;margin-bottom:4px"><span class="row" style="gap:10px">${I("pulse")}<b>Sforzo e note</b></span><span class="mu sp" style="text-align:right;font-weight:500">facoltativo</span>${I("chev","cv")}</button>
   <div class="col ${OPEN.det?"open":""}" id="c-det"><div><div style="padding-top:8px"><div class="rr"><div class="row"><b style="font-size:15px">Sforzo (RPE)</b><span class="sp"></span><span class="mu" id="rpl">non indicato</span></div><input type="range" id="rpe" min="0" max="10" step="1" value="0"></div><input id="nt" maxlength="80" placeholder="Nota (es. buona tecnica)" style="text-align:left;margin-bottom:12px"></div></div></div>
   <button class="gb on" data-a="log" style="width:100%;padding:14px">${I("check")} ${t.sv}</button></div>
   <h2>Storico</h2>${[...ls].reverse().slice(0,12).map(x=>`<div class="g item row"><span class="mu" style="width:56px">${fd(x.d)}</span><span class="sp"><b>${t.fmt(x)}</b>${x.tag&&TAGS[x.tag]?`<span class="tbadge ${TAGS[x.tag][1]}">${TAGS[x.tag][0]}</span>`:""}${x.s?` <span class="mu">serie ${x.s}</span>`:""}${x.p?` <span class="mu">· RPE ${x.p}</span>`:""}${x.n?`<div class="mu" style="font-size:12px;margin-top:2px">${esc(x.n)}</div>`:""}</span>${x.pr?`<span style="color:#fbbf24;display:flex">${I("trophy")}</span>`:""}${x.route?`<div style="width:76px;flex:none">${rsvg(x.route,76,56)}</div>`:""}<button class="gb sm" data-a="dlog" data-v="${x.d}">${I("x")}</button></div>`).join("")||`<div class="ex">Ancora nessun dato</div>`}`}
@@ -598,25 +604,26 @@ function vProg(){
   ${ls.some(x=>x.pr)?`<div class="g scard"><span class="mu" style="font-size:11px">Record battuti</span><b>${ls.filter(x=>x.pr).length}</b></div>`:""}
   ${bwv()&&pr&&(curE.t||"peso")==="peso"?`<div class="g scard"><span class="mu" style="font-size:11px">Rapporto peso</span><b>${(pr/bwv()).toFixed(2)}× BW</b></div>`:""}
  </div></div>`}
-function vSet(){const P=db.prof,w=bwv(),bmi=P.h&&w?w/Math.pow(P.h/100,2):0,curAc=ACC[db.ac||0]?(db.ac||0):0;return`<h1><span>Profilo</span></h1>
- <button class="gb acc ${OPEN.prof?"open":""}" data-a="tg" data-v="prof"><span class="row" style="gap:10px">${I("user")}<b>Dati fisici</b></span><span class="mu sp" style="text-align:right;font-weight:500">${w?w+" kg":"—"} · ${P.h?P.h+" cm":"—"}</span>${I("chev","cv")}</button>
+function vSet(){const P=db.prof,w=bwv(),bmi=P.h&&w?w/Math.pow(P.h/100,2):0,curAc=ACC[db.ac||0]?(db.ac||0):0,curSnd=SND[db.snd.t]||SND.bip;return`<h1><span>Profilo</span></h1>
+ <button class="gb acc ${OPEN.prof?"open":""}" data-a="tg" data-v="prof" style="margin-top:0"><span class="row" style="gap:10px">${I("user")}<b>Dati fisici</b></span><span class="mu sp" style="text-align:right;font-weight:500">${w?w+" kg":"—"} · ${P.h?P.h+" cm":"—"}</span>${I("chev","cv")}</button>
  <div class="col ${OPEN.prof?"open":""}" id="c-prof"><div><div class="g" style="padding:16px;margin-top:12px"><div class="f2"><div><label>Altezza (cm)</label><input id="ph" type="number" inputmode="numeric" value="${P.h||""}" placeholder="175"></div><div><label>Peso (kg)</label><input id="pw" type="number" inputmode="decimal" step="0.1" value="${w||""}" placeholder="70"></div></div><button class="gb on" data-a="prof" style="width:100%">${I("check")} Salva misure</button></div>
  <div class="pr" style="margin-top:12px"><div class="g gb" style="border-radius:18px"><b>${w?w+" kg":"—"}</b><small>Peso</small></div><div class="g gb" style="border-radius:18px"><b>${P.h?P.h+" cm":"—"}</b><small>Altezza</small></div><div class="g gb" style="border-radius:18px"><b>${bmi?bmi.toFixed(1):"—"}</b><small>BMI</small></div></div>
  ${P.w.length>1?`<div class="g" style="padding:14px 10px 6px;margin-bottom:6px"><div class="mu" style="margin:0 8px 6px">Andamento peso (kg)</div>${chart(P.w.map(x=>({t:new Date(x.d),y:x.v})),1)}</div>`:`<div class="mu" style="text-align:center">Salva il peso in giorni diversi per vedere l’andamento</div>`}</div></div>
  <h1 style="margin-top:28px"><span>Impostazioni</span></h1>
- <h2>Colore app</h2><div class="sw8" style="justify-content:flex-start">${ACC.map((c,i)=>`<button class="sw ${curAc===i?"sel":""}" data-a="acc" data-v="${i}" style="background:linear-gradient(135deg,${c[0]},${c[1]})"></button>`).join("")}</div>
  <h2>Tema</h2><div class="seg"><button class="gb ${db.theme==="dark"?"on":""}" data-a="th" data-v="dark">${I("moon")} Scuro</button><button class="gb ${db.theme==="light"?"on":""}" data-a="th" data-v="light">${I("sun")} Chiaro</button></div>
- <div style="margin-top:18px"></div>
+ <button class="gb acc ${OPEN.col?"open":""}" data-a="tg" data-v="col" style="margin-top:16px"><span class="row" style="gap:10px">${I("palette")}<b>Colore app</b></span><span class="sp"></span><span class="sw-pill" style="background:linear-gradient(135deg,${ACC[curAc][0]},${ACC[curAc][1]})"></span>${I("chev","cv")}</button>
+ <div class="col ${OPEN.col?"open":""}" id="c-col"><div><div class="g" style="padding:16px;margin-top:10px"><div class="sw8" style="margin-bottom:0">${ACC.map((c,i)=>`<button class="sw ${curAc===i?"sel":""}" data-a="acc" data-v="${i}" style="background:linear-gradient(135deg,${c[0]},${c[1]})"></button>`).join("")}</div></div></div></div>
  <button class="gb acc ${OPEN.tmr?"open":""}" data-a="tg" data-v="tmr"><span class="row" style="gap:10px">${I("clock")}<b>Tempi rapidi predefiniti</b></span><span class="mu sp" style="text-align:right;font-weight:500">${db.timers.map(lbl).join(" · ")}</span>${I("chev","cv")}</button>
- <div class="col ${OPEN.tmr?"open":""}" id="c-tmr"><div><div style="padding-top:12px">${db.timers.map((s,i)=>`<div class="g item row" data-a="tset" data-v="${i}" style="cursor:pointer">${I("clock")}<span class="sp">Preset ${i+1}</span><b>${lbl(s)}</b></div>`).join("")}</div></div></div>
- <h2>Suoni e vibrazione</h2><div class="g" style="padding:16px"><div class="snd">${Object.keys(SND).map(k=>`<button class="gb ${db.snd.t===k?"on":""}" data-a="snd" data-v="${k}">${SND[k].n}</button>`).join("")}</div>
+ <div class="col ${OPEN.tmr?"open":""}" id="c-tmr"><div><div style="padding-top:10px">${db.timers.map((s,i)=>`<div class="g item row" data-a="tset" data-v="${i}" style="cursor:pointer">${I("clock")}<span class="sp">Preset ${i+1}</span><b>${lbl(s)}</b></div>`).join("")}</div></div></div>
+ <button class="gb acc ${OPEN.snd?"open":""}" data-a="tg" data-v="snd"><span class="row" style="gap:10px">${I("bell")}<b>Suoni e vibrazione</b></span><span class="mu sp" style="text-align:right;font-weight:500">${curSnd.n} · ${db.snd.v}%</span>${I("chev","cv")}</button>
+ <div class="col ${OPEN.snd?"open":""}" id="c-snd"><div><div class="g" style="padding:16px;margin-top:10px"><div class="snd">${Object.keys(SND).map(k=>`<button class="gb ${db.snd.t===k?"on":""}" data-a="snd" data-v="${k}">${SND[k].n}</button>`).join("")}</div>
  <div class="rr"><div class="row"><b style="font-size:15px">Volume allarme</b><span class="sp"></span><span class="mu" id="svl">${db.snd.v}%</span></div><input type="range" id="sv" min="0" max="100" step="5" value="${db.snd.v}"></div>
  <div class="rr"><div class="row"><b style="font-size:15px">Durata vibrazione</b><span class="sp"></span><span class="mu" id="sdl">${db.snd.vib>0?db.snd.vib+" ms":"Off"}</span></div><input type="range" id="sd" min="0" max="2000" step="100" value="${db.snd.vib}"></div>
  <button class="gb" data-a="stest" style="width:100%">${I("bell")} Prova suono e vibrazione</button>
- <div class="mu" style="font-size:12px;margin-top:10px;text-align:center">Il volume vale per l’allarme nell’app. Il suono delle notifiche di sistema si regola dal telefono. La vibrazione non è supportata su iPhone.</div></div>
+ <div class="mu" style="font-size:12px;margin-top:10px;text-align:center">Il volume vale per l’allarme nell’app. Il suono delle notifiche di sistema si regola dal telefono. La vibrazione non è supportata su iPhone.</div></div></div></div>
  <h2>Notifiche</h2><button class="gb" data-a="notif" style="width:100%">${I("bell")} Abilita notifiche e suono</button>${NATIVE?`<h2>Timer flottante</h2><button class="gb ${db.bubble!==false?"on":""}" data-a="bub" style="width:100%">${I("timer")} Bolla sopra le altre app: ${db.bubble!==false?"attiva":"disattivata"}</button><div class="mu" style="font-size:12px;margin-top:8px;text-align:center">Compare quando esci dall’app con un timer attivo. Richiede il permesso “Mostra sopra altre app”.</div><button class="gb on" data-a="mst" style="width:100%;margin-top:12px">${I("bell")} Stile notifica: ${["Riquadro (come timer Samsung)","Live Android 16 (barra di stato / Now Bar)","Lettore musicale"][db.nstyle|0]}</button><div class="mu" style="font-size:12px;margin-top:8px;text-align:center">Tocca per cambiare. Riquadro: icona, tempo grande, Annulla/Pausa. Live: la pillola con il tempo, solo su Android 16 con One UI 8 (attiva “Notifiche live” per GYMER nelle impostazioni).</div><div class="row" style="gap:10px;margin-top:12px"><button class="gb" data-a="diag" style="flex:1">Controlla permessi</button><button class="gb" data-a="ntest" style="flex:1">Prova avviso</button></div><button class="gb" data-a="livesett" style="width:100%;margin-top:10px">Impostazioni notifiche live</button>`:""}
- <div style="margin-top:22px"></div><button class="gb acc ${OPEN.bk?"open":""}" data-a="tg" data-v="bk"><span class="row" style="gap:10px">${I("down")}<b>Backup dati</b></span><span class="mu sp" style="text-align:right;font-weight:500">Esporta / importa</span>${I("chev","cv")}</button>
- <div class="col ${OPEN.bk?"open":""}" id="c-bk"><div><div class="g" style="padding:14px;margin-top:12px"><textarea id="bk" rows="4" placeholder="Il JSON appare qui. Incolla qui per importare."></textarea><div class="seg" style="margin-top:10px"><button class="gb" data-a="exp">${I("down")} Esporta</button><button class="gb on" data-a="imp">${I("up")} Importa</button></div><input id="fi" type="file" accept=".json,application/json" style="margin-top:10px;text-align:left"></div></div></div>`}
+ <div style="margin-top:12px"></div><button class="gb acc ${OPEN.bk?"open":""}" data-a="tg" data-v="bk"><span class="row" style="gap:10px">${I("down")}<b>Backup dati</b></span><span class="mu sp" style="text-align:right;font-weight:500">Esporta / importa</span>${I("chev","cv")}</button>
+ <div class="col ${OPEN.bk?"open":""}" id="c-bk"><div><div class="g" style="padding:14px;margin-top:10px"><textarea id="bk" rows="4" placeholder="Il JSON appare qui. Incolla qui per importare."></textarea><div class="seg" style="margin-top:10px"><button class="gb" data-a="exp">${I("down")} Esporta</button><button class="gb on" data-a="imp">${I("up")} Importa</button></div><input id="fi" type="file" accept=".json,application/json" style="margin-top:10px;text-align:left"></div></div></div>`}
 const TABS=[["train","dumbbell","Allena"],["timer","timer","Timer"],["prog","trend","Progressi"],["set","user","Profilo"]];
 function render(keep){
  document.documentElement.dataset.theme=db.theme;{const A=ACC[db.ac||0]||ACC[0],s=document.documentElement.style;s.setProperty("--ac",A[0]);s.setProperty("--ac2",A[1]);if(NATIVE&&GT&&window.__cc!==A[0]+A[1]){window.__cc=A[0]+A[1];try{GT.setColors({a:A[0],b:A[1]})}catch(e){}}}
@@ -629,7 +636,7 @@ const SLOW={log:1,prof:1,astart:1,aend:1,imp:1,exp:1};
 document.addEventListener("click",ev=>{
  const el=ev.target.closest("[data-a]");if(!el)return;const a=el.dataset.a,v=el.dataset.v,g=G(),e=E();if(a!=="log"&&a!=="same")tap();
  if(SLOW[a]){const n=Date.now();if(n-(LK[a]||0)<900)return;LK[a]=n}
- if(a==="tab"){if(v===tab&&!(v==="train"&&(V.g||V.e)))return;const ni=TABS.findIndex(t=>t[0]===v),oi=TABS.findIndex(t=>t[0]===tab);goto(ni>=oi?"f":"b",()=>{tab=v;EM=0;POPEN=0;STAG="";OPEN.prof=OPEN.bk=OPEN.det=OPEN.tmr=0;if(v==="train")V={}})}
+ if(a==="tab"){if(v===tab&&!(v==="train"&&(V.g||V.e)))return;const ni=TABS.findIndex(t=>t[0]===v),oi=TABS.findIndex(t=>t[0]===tab);goto(ni>=oi?"f":"b",()=>{tab=v;EM=0;POPEN=0;STAG="";Object.keys(OPEN).forEach(k=>OPEN[k]=0);if(v==="train")V={}})}
  else if(a==="grp")goto("f",()=>{EM=0;V={g:v}});else if(a==="ex")goto("f",()=>{OPEN.det=0;STAG="";V={g:V.g,e:v}});
  else if(a==="back")goto("b",()=>{EM=0;STAG="";V=V.e?{g:V.g}:{}});
  else if(a==="addg"){if(db.groups.length>=24)toast("Limite di 24 gruppi raggiunto");else gsheet(null)}else if(a==="eg")gsheet(db.groups.find(x=>x.id===v));
